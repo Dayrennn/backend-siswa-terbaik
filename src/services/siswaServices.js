@@ -86,3 +86,34 @@ export const updateSiswa = async (
   });
   return updateSiswa;
 };
+
+export const getAllSiswa = async () => {
+  const siswas = await prisma.siswa.findMany({
+    select: {
+      id: true,
+      nis: true,
+      name: true,
+      tanggalLahir: true,
+      kelas: true,
+      nilai: true,
+    },
+  });
+
+  return siswas;
+};
+
+export const getOneSiswa = async (id) => {
+  const siswas = await prisma.siswa.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      nis: true,
+      name: true,
+      tanggalLahir: true,
+      kelas: true,
+      nilai: true,
+    },
+  });
+
+  return siswas;
+};
