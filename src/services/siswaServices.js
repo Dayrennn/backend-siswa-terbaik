@@ -103,13 +103,12 @@ export const getAllSiswa = async () => {
 export const getOneSiswa = async (id) => {
   const siswas = await prisma.siswa.findUnique({
     where: { id },
-    select: {
-      id: true,
-      nis: true,
-      name: true,
-      tanggalLahir: true,
-      kelas: true,
-      nilai: true,
+    include: {
+      nilai: {
+        include: {
+          mataPelajaran: true,
+        },
+      },
     },
   });
 
