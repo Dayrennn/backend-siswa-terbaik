@@ -1,4 +1,4 @@
-import prisma from "../config/prisma";
+import prisma from "../config/prisma.js";
 
 // tambah siswa
 export const addSiswa = async ({ nis, name, tanggalLahir, kelas, nilai }) => {

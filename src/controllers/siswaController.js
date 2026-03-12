@@ -1,6 +1,6 @@
-import { addSiswa, updateSiswa } from "../services/siswaServices";
+import { addSiswa, updateSiswa } from "../services/siswaServices.js";
 
-export const addSiswa = async (req, res) => {
+export const createSiswa = async (req, res) => {
   try {
     const { nis, name, tanggalLahir, kelas, nilai } = req.body;
     await addSiswa({ nis, name, tanggalLahir, kelas, nilai });
@@ -10,7 +10,7 @@ export const addSiswa = async (req, res) => {
   }
 };
 
-export const updateSiswa = async (req, res) => {
+export const modifySiswa = async (req, res) => {
   try {
     const { id } = req.params;
     const { nis, name, tanggalLahir, kelas, nilai } = req.body;

@@ -1,7 +1,7 @@
 import express from "express";
-import { addSiswa, updateSiswa } from "../controllers/siswaController";
-import { authMiddleware } from "../middleware/authMiddleware";
-import { authorizeRole } from "../middleware/authorizeRoleMiddleware";
+import { createSiswa, modifySiswa } from "../controllers/siswaController.js";
+import { authMiddleware } from "../middleware/authMiddleware.js";
+import { authorizeRole } from "../middleware/authorizeRoleMiddleware.js";
 
 const router = express.Router();
 
@@ -9,11 +9,13 @@ router.post(
   "/create",
   authMiddleware,
   authorizeRole("Admin", "Guru", "WaliKelas"),
-  addSiswa,
+  createSiswa,
 );
 router.put(
   "/update",
   authMiddleware,
   authorizeRole("Admin", "Guru", "WaliKelas"),
-  updateSiswa,
+  modifySiswa,
 );
+
+export default router;
