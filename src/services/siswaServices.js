@@ -55,9 +55,8 @@ export const updateSiswa = async (
   const data = {};
   if (nis) data.nis = nis;
   if (name) data.name = name;
-  if (tanggalLahir) data.tanggalLahir = tanggalLahir;
+  if (tanggalLahir) data.tanggalLahir = new Date(tanggalLahir);
   if (kelas) data.kelas = kelas;
-  if (nilai) data.nilai = nilai;
 
   // Update nilai jika dikirim
   if (nilai) {
@@ -89,13 +88,12 @@ export const updateSiswa = async (
 
 export const getAllSiswa = async () => {
   const siswas = await prisma.siswa.findMany({
-    select: {
-      id: true,
-      nis: true,
-      name: true,
-      tanggalLahir: true,
-      kelas: true,
-      nilai: true,
+    include: {
+      nilai: {
+        include: {
+          mataPelajaran: true,
+        },
+      },
     },
   });
 
