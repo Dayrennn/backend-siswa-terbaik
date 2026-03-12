@@ -1,0 +1,73 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+    id          String        @id @unique @default(uuid())
+    email       String        @unique
+    username    String?
+    telephone    String?
+    role        Role          @default(Guru)
+    password    String
+    isVerified  Boolean       @default(false)
+    otps        Otp[]
+}
+
+model Otp {
+  id        String      @id @unique @default(uuid())
+  userId    String?
+  email     String
+  code      String
+  type      String   
+  metadata  String?
+  expiresAt DateTime
+  createdAt DateTime    @default(now())
+  user      User?       @relation(fields: [userId], references: [id])
+}
+
+model Siswa {
+  id           String      @id @unique @default(uuid())
+  nis          String?
+  name         String 
+  tanggalLahir DateTime
+  kelas        String?
+
+  nilai        Nilai[]
+}
+
+model MataPelajaran {
+  id            String      @id @unique @default(uuid())
+  namaPelajaran String
+
+  nilai Nilai[]
+}
+
+model Nilai {
+  id                String      @id @unique @default(uuid())
+  nilai             Float
+
+  siswaId           String    
+  mataPelajaranId   String
+
+  siswa             Siswa           @relation(fields: [siswaId],  references: [id])
+  mataPelajaran     MataPelajaran   @relation(fields: [mataPelajaranId], references: [id])
+
+   @@unique([siswaId, mataPelajaranId]) 
+}
+
+enum Role {
+  Guru
+  WaliKelas
+  KepalaSekolah
+  WakilKepalaSekolah
+  Admin
+}

@@ -1,0 +1,88 @@
+import {
+  loginUser,
+  requestRegisterOtp,
+  updateUser,
+  verifyRegisterWithOtp,
+  getAllUser,
+  getOneUser,
+} from "../services/userServices.js";
+
+// register & kirim otp
+export const register = async (req, res) => {
+  try {
+    const { username, email, password, telephone } = req.body;
+    await requestRegisterOtp({ username, email, password, telephone });
+    res.status(200).json({ message: "OTP Berhasil Terkirim" });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// verif otp
+export const verifyRegisterOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const newUser = await verifyRegisterWithOtp({ email, otp });
+    res.status(200).json({ message: "Registrasi Berhasil", data: newUser });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// login
+export const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const result = await loginUser({ email, password });
+    res.status(200).json({ message: "Login Berhasil", data: result });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// update
+export const update = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { username, email, telephone, password, role } = req.body;
+    const updatedUser = await updateUser(id, {
+      username,
+      email,
+      telephone,
+      password,
+      role,
+      telephone,
+    });
+
+    res
+      .status(200)
+      .json({ message: "Data berhasil dirubah", data: updateUser });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// ambil semua data user
+export const getUsers = async (req, res) => {
+  try {
+    const users = await getAllUser();
+    res
+      .status(200)
+      .json({ message: "Berhasil mengambil data users", data: users });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// ambil satu data user
+export const getUserById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await getOneUser(id);
+    res
+      .status(200)
+      .json({ message: "Berhasil mengambil data user by id", data: user });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
