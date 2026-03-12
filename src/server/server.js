@@ -2,6 +2,7 @@ import express from "express";
 import userRoutes from "../routes/userRoutes.js";
 import otpRoutes from "../routes/otpRoutes.js";
 import siswaRoutes from "../routes/siswaRoutes.js";
+import kriteriaRoutes from "../routes/kriteriaRoutes.js";
 import morgan from "morgan";
 
 const app = express();
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use("/auth", userRoutes);
 app.use("/otp", otpRoutes);
 app.use("/siswa", siswaRoutes);
+app.use("/kriteria", kriteriaRoutes);
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);

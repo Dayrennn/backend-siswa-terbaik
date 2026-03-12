@@ -1,4 +1,4 @@
-import { generateToken, verifyToken } from "../utils/jwt.js";
+import { generateToken } from "../utils/jwt.js";
 import prisma from "../config/prisma.js";
 import { comparePassword, hashPassword } from "../utils/bcrypt.js";
 import { sendOtp, verifyOtp } from "./otpService.js";

@@ -42,6 +42,7 @@ model Siswa {
   kelas        String?
 
   nilai        Nilai[]
+  nilaiKriteria NilaiKriteria[]
 }
 
 model MataPelajaran {
@@ -64,10 +65,37 @@ model Nilai {
    @@unique([siswaId, mataPelajaranId]) 
 }
 
+model Kriteria {
+  id           String   @id @default(uuid())
+  namaKriteria String
+  bobot        Float
+  jenis        Jenis   // benefit atau cost
+
+  nilaiKriteria NilaiKriteria[]
+}
+
+model NilaiKriteria {
+  id            String   @id @default(uuid())
+
+  siswaId       String
+  kriteriaId    String
+  nilai         Float
+
+  siswa         Siswa @relation(fields: [siswaId], references: [id])
+  kriteria      Kriteria @relation(fields: [kriteriaId], references: [id])
+
+  @@unique([siswaId, kriteriaId])
+}
+
 enum Role {
   Guru
   WaliKelas
   KepalaSekolah
   WakilKepalaSekolah
   Admin
+}
+
+enum Jenis {
+  benefit
+  cost
 }
