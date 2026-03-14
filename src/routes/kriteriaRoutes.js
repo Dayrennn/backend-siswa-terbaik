@@ -18,7 +18,7 @@ router.post(
 );
 
 router.put(
-  "/update",
+  "/update/:id",
   authMiddleware,
   authorizeRole("Admin", "WakilKepalaSekolah"),
   modifyKriteria,

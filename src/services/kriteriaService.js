@@ -1,6 +1,15 @@
 import prisma from "../config/prisma.js";
 
 export const addKriteria = async ({ namaKriteria, bobot, jenis }) => {
+  // cek field
+  if (!namaKriteria?.trim() || !jenis?.trim()) {
+    throw new Error("Data wajib di isi");
+  }
+
+  if (bobot === undefined || bobot === null) {
+    throw new Error("Bobot wajib di isi");
+  }
+
   const existingKriteria = await prisma.kriteria.findFirst({
     where: {
       OR: [{ namaKriteria }],
@@ -9,7 +18,7 @@ export const addKriteria = async ({ namaKriteria, bobot, jenis }) => {
 
   if (existingKriteria) throw new Error("Data sudah ada");
 
-  const newKriteria = await prisma.create({
+  const newKriteria = await prisma.kriteria.create({
     data: {
       namaKriteria: namaKriteria,
       bobot: bobot,
@@ -30,9 +39,9 @@ export const updateKriteria = async (id, { namaKriteria, bobot, jenis }) => {
   if (namaKriteria) {
     const existing = await prisma.kriteria.findFirst({
       where: {
-        OR: [namaKriteria ? { namaKriteria } : undefined].filter(Boolean),
+        namaKriteria,
+        NOT: { id },
       },
-      NOT: { id },
     });
     if (existing) throw new Error("nama kriteria sudah digunakan");
   }
@@ -44,11 +53,7 @@ export const updateKriteria = async (id, { namaKriteria, bobot, jenis }) => {
 
   const updateKriteria = await prisma.kriteria.update({
     where: { id },
-    data: {
-      namaKriteria: true,
-      bobot: true,
-      jenis: true,
-    },
+    data: data,
   });
 
   return updateKriteria;

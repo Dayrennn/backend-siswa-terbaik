@@ -71,7 +71,7 @@ model Kriteria {
   id           String   @id @default(uuid())
   namaKriteria String
   bobot        Float
-  jenis        Jenis   // benefit atau cost
+  jenis        String   // benefit atau cost
 
   nilaiKriteria NilaiKriteria[]
 }
@@ -95,9 +95,4 @@ enum Role {
   KepalaSekolah
   WakilKepalaSekolah
   Admin
-}
-
-enum Jenis {
-  benefit
-  cost
 }

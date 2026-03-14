@@ -19,7 +19,7 @@ export const modifyKriteria = async (req, res) => {
   try {
     const { id } = req.params;
     const { namaKriteria, bobot, jenis } = req.body;
-    const updatedKritera = updateKriteria(id, {
+    const updatedKritera = await updateKriteria(id, {
       namaKriteria,
       bobot,
       jenis,
