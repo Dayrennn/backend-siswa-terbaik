@@ -40,6 +40,8 @@ model Siswa {
   name         String 
   tanggalLahir DateTime
   kelas        String?
+  createdAt    DateTime   @default(now())
+  updateAt     DateTime   @updatedAt
 
   nilai        Nilai[]
   nilaiKriteria NilaiKriteria[]

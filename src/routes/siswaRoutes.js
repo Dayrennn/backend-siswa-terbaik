@@ -17,7 +17,7 @@ router.post(
   createSiswa,
 );
 router.put(
-  "/update",
+  "/update/:id",
   authMiddleware,
   authorizeRole("Admin", "Guru", "WaliKelas"),
   modifySiswa,

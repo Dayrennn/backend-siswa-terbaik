@@ -1,13 +1,12 @@
 import express from "express";
-import { authMiddleware } from "../middleware/authMiddleware";
-import { authorizeRole } from "../middleware/authorizeRoleMiddleware";
+import { authMiddleware } from "../middleware/authMiddleware.js";
+import { authorizeRole } from "../middleware/authorizeRoleMiddleware.js";
 import {
   createKriteria,
   getKriteriaById,
   modifyKriteria,
   getAllKriteria,
-} from "../controllers/kriteriaController";
-import { getAllKriteria } from "../services/kriteriaService";
+} from "../controllers/kriteriaController.js";
 
 const router = express.Router();
 

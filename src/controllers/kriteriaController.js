@@ -1,9 +1,9 @@
 import {
   addKriteria,
-  getAllKriteria,
+  getKriteria,
   getOneKriteria,
   updateKriteria,
-} from "../services/kriteriaService";
+} from "../services/kriteriaService.js";
 
 export const createKriteria = async (req, res) => {
   try {
@@ -34,7 +34,7 @@ export const modifyKriteria = async (req, res) => {
 
 export const getAllKriteria = async (req, res) => {
   try {
-    const kriterias = await getAllKriteria();
+    const kriterias = await getKriteria();
     res.status(200).json({
       message: "Berhasil mendapatkan data kriteria",
       data: kriterias,

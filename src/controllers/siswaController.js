@@ -19,7 +19,7 @@ export const modifySiswa = async (req, res) => {
   try {
     const { id } = req.params;
     const { nis, name, tanggalLahir, kelas, nilai } = req.body;
-    const updatedSiswa = updateSiswa(id, {
+    const updatedSiswa = await updateSiswa(id, {
       nis,
       name,
       tanggalLahir,

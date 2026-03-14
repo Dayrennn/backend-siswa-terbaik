@@ -17,12 +17,15 @@ export const addSiswa = async ({ nis, name, tanggalLahir, kelas, nilai }) => {
       tanggalLahir: new Date(tanggalLahir),
       kelas: kelas,
       // isi sekaligus saat tambah siswa
-      nilai: {
-        create: nilai?.map((n) => ({
-          nilai: n.nilai,
-          mataPelajaranId: n.mataPelajaranId,
-        })),
-      },
+      ...(nilai &&
+        nilai.length > 0 && {
+          nilai: {
+            create: nilai.map((n) => ({
+              nilai: n.nilai,
+              mataPelajaranId: n.mataPelajaranId,
+            })),
+          },
+        }),
     },
   });
 

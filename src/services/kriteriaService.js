@@ -1,4 +1,4 @@
-import prisma from "../config/prisma";
+import prisma from "../config/prisma.js";
 
 export const addKriteria = async ({ namaKriteria, bobot, jenis }) => {
   const existingKriteria = await prisma.kriteria.findFirst({
@@ -54,7 +54,7 @@ export const updateKriteria = async (id, { namaKriteria, bobot, jenis }) => {
   return updateKriteria;
 };
 
-export const getAllKriteria = async () => {
+export const getKriteria = async () => {
   const kriterias = await prisma.kriteria.findMany({
     select: {
       id: true,
