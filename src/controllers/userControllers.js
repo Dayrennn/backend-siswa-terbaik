@@ -10,8 +10,14 @@ import {
 // register & kirim otp
 export const register = async (req, res) => {
   try {
-    const { username, email, password, telephone } = req.body;
-    await requestRegisterOtp({ username, email, password, telephone });
+    const { username, email, password, telephone, pelajaranId } = req.body;
+    await requestRegisterOtp({
+      username,
+      email,
+      password,
+      telephone,
+      pelajaranId,
+    });
     res.status(200).json({ message: "OTP Berhasil Terkirim" });
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -44,7 +50,8 @@ export const login = async (req, res) => {
 export const update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { username, email, telephone, password, role } = req.body;
+    const { username, email, telephone, password, role, pelajaranId } =
+      req.body;
     const updatedUser = await updateUser(id, {
       username,
       email,
@@ -52,6 +59,7 @@ export const update = async (req, res) => {
       password,
       role,
       telephone,
+      pelajaranId,
     });
 
     res

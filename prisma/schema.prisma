@@ -20,6 +20,8 @@ model User {
     password    String
     isVerified  Boolean       @default(false)
     otps        Otp[]
+
+    pelajaran Pelajaran[]
 }
 
 model Otp {
@@ -45,13 +47,12 @@ model Siswa {
 
   nilai        Nilai[]
   nilaiKriteria NilaiKriteria[]
-}
-
-model MataPelajaran {
-  id            String      @id @unique @default(uuid())
-  namaPelajaran String
-
-  nilai Nilai[]
+  pelajaran Pelajaran[]
+  hafalan Hafalan[]
+  poinPlus PoinPlus[]
+  poinMinus PoinMinus[]
+  eskul SiswaEskul[]
+  kehadiran Kehadiran[]
 }
 
 model Nilai {
@@ -59,12 +60,12 @@ model Nilai {
   nilai             Float
 
   siswaId           String    
-  mataPelajaranId   String
+  pelajaranId   String
 
   siswa             Siswa           @relation(fields: [siswaId],  references: [id])
-  mataPelajaran     MataPelajaran   @relation(fields: [mataPelajaranId], references: [id])
+  pelajaran     Pelajaran   @relation(fields: [pelajaranId], references: [id])
 
-   @@unique([siswaId, mataPelajaranId]) 
+   @@unique([siswaId, pelajaranId]) 
 }
 
 model Kriteria {
@@ -87,6 +88,80 @@ model NilaiKriteria {
   kriteria      Kriteria @relation(fields: [kriteriaId], references: [id])
 
   @@unique([siswaId, kriteriaId])
+}
+
+model Pelajaran {
+  id String @id @default(uuid())
+  namaPelajaran String
+  kodePelajaran String
+
+  nilai Nilai[]
+  user User[]
+  siswa Siswa[]
+}
+
+model Hafalan {
+  id            String   @id @default(uuid())
+  siswaId String @unique
+
+  siswa Siswa @relation(fields: [siswaId], references: [id])
+
+  jumlahJuz Int
+}
+
+model PoinPlus {
+  id            String   @id @default(uuid())
+  siswaId String 
+
+  siswa Siswa @relation(fields: [siswaId], references: [id])
+
+  deskripsi String
+  poin Int
+  tanggal DateTime @default(now())
+}
+
+model PoinMinus {
+  id String @id @default(uuid())
+  siswaId String
+
+  siswa Siswa @relation(fields: [siswaId], references: [id])
+
+  deskripsi String
+  poin Int
+  tanggal DateTime @default(now())
+}
+
+model Eskul {
+  id String @id @default(uuid())
+  namaEskul String
+
+  siswa SiswaEskul[]
+}
+model SiswaEskul {
+  id String @id @default(uuid())
+  siswaId String
+  eskulId String
+
+  siswa Siswa @relation(fields: [siswaId], references: [id])
+  eskul Eskul @relation(fields: [eskulId], references: [id])
+}
+
+model Kehadiran {
+  id String @id @default(uuid())
+  tahunAjaran String
+  siswaId String
+  statusKehadiran StatusKehadiran @default(Alpha)
+  tanggalKehadiran DateTime @default(now())
+
+  siswa Siswa @relation(fields: [siswaId], references: [id])
+  @@unique([siswaId, tanggalKehadiran])
+}
+
+enum StatusKehadiran {
+  Hadir
+  Izin
+  Sakit
+  Alpha
 }
 
 enum Role {

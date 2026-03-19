@@ -1,7 +1,7 @@
 import prisma from "../config/prisma.js";
 
 // tambah siswa
-export const addSiswa = async ({ nis, name, tanggalLahir, kelas, nilai }) => {
+export const addSiswa = async ({ nis, name, tanggalLahir, kelas }) => {
   const existingSiswa = await prisma.siswa.findFirst({
     where: {
       OR: [{ nis }, { name }],
@@ -10,22 +10,36 @@ export const addSiswa = async ({ nis, name, tanggalLahir, kelas, nilai }) => {
 
   if (existingSiswa) throw new Error("Data siswa sudah ada");
 
+  // ambil semua pelajaran dan kriteria otomatis
+  const allPelajaran = await prisma.pelajaran.findMany();
+  const allKriteria = await prisma.kriteria.findMany();
+  const allKehadiran = await prisma.kehadiran.findMany();
+
   const newSiswa = await prisma.siswa.create({
     data: {
       nis: nis,
       name: name,
       tanggalLahir: new Date(tanggalLahir),
       kelas: kelas,
-      // isi sekaligus saat tambah siswa
-      ...(nilai &&
-        nilai.length > 0 && {
-          nilai: {
-            create: nilai.map((n) => ({
-              nilai: n.nilai,
-              mataPelajaranId: n.mataPelajaranId,
-            })),
-          },
-        }),
+      // isi nilai otomatis, default 0
+      nilai: {
+        create: allPelajaran.map((pelajaran) => ({
+          pelajaranId: pelajaran.id,
+          nilai: 0,
+        })),
+      },
+      nilaiKriteria: {
+        create: allKriteria.map((kriteria) => ({
+          kriteriaId: kriteria.id,
+          nilai: 0,
+        })),
+      },
+      kehadiran: {
+        create: allKehadiran.map((kehadiran) => ({
+          kehadiranId: kehadiran.id,
+          statusKehadiran: "Alpha",
+        })),
+      },
     },
   });
 
@@ -35,7 +49,7 @@ export const addSiswa = async ({ nis, name, tanggalLahir, kelas, nilai }) => {
 // update siswa
 export const updateSiswa = async (
   id,
-  { nis, name, tanggalLahir, kelas, nilai },
+  { nis, name, tanggalLahir, kelas, nilai, nilaiKriteria },
 ) => {
   const existingSiswa = await prisma.siswa.findUnique({
     where: { id },
@@ -66,13 +80,28 @@ export const updateSiswa = async (
     data.nilai = {
       upsert: nilai.map((n) => ({
         where: {
-          siswaId_mataPelajaranId: {
+          siswaId_pelajaranId: {
             siswaId: id,
-            mataPelajaranId: n.mataPelajaranId,
+            pelajaranId: n.pelajaranId,
           },
         },
         update: { nilai: n.nilai },
-        create: { nilai: n.nilai, mataPelajaranId: n.mataPelajaranId },
+        create: { nilai: n.nilai, pelajaranId: n.pelajaranId },
+      })),
+    };
+  }
+
+  if (nilaiKriteria) {
+    data.nilaiKriteria = {
+      upsert: nilaiKriteria.map((n) => ({
+        where: {
+          siswaId_kriteriaId: {
+            siswaId: id,
+            kriteriaId: n.kriteriaId,
+          },
+        },
+        update: { nilai: n.nilai },
+        create: { nilai: n.nilai, kriteriaId: n.kriteriaId },
       })),
     };
   }
@@ -82,7 +111,14 @@ export const updateSiswa = async (
     data,
     include: {
       nilai: {
-        include: { mataPelajaran: true },
+        include: {
+          pelajaran: true,
+        },
+      },
+      nilaiKriteria: {
+        include: {
+          kriteria: true,
+        },
       },
     },
   });
@@ -94,7 +130,12 @@ export const getAllSiswa = async () => {
     include: {
       nilai: {
         include: {
-          mataPelajaran: true,
+          pelajaran: true,
+        },
+      },
+      nilaiKriteria: {
+        include: {
+          kriteria: true,
         },
       },
     },
@@ -109,7 +150,12 @@ export const getOneSiswa = async (id) => {
     include: {
       nilai: {
         include: {
-          mataPelajaran: true,
+          pelajaran: true,
+        },
+      },
+      nilaiKriteria: {
+        include: {
+          kriteria: true,
         },
       },
     },

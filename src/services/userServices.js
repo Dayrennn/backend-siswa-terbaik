@@ -18,6 +18,7 @@ export const requestRegisterOtp = async ({
   email,
   password,
   telephone,
+  pelajaranId,
 }) => {
   // validasi telephone
   validatePhone(telephone);
@@ -30,11 +31,34 @@ export const requestRegisterOtp = async ({
 
   if (existingUser) throw new Error("Username atau email sudah terdaftar");
 
+  const existingTelephone = await prisma.user.findFirst({
+    where: {
+      OR: [{ telephone }],
+    },
+  });
+
+  if (existingTelephone) throw new Error("Telephone sudah terdaftar");
+
+  // validasi pelajaran
+  if (pelajaranId && pelajaranId.length > 0) {
+    const found = await prisma.pelajaran.findMany({
+      where: { id: { in: pelajaranId } },
+    });
+    if (found.length !== pelajaranId.length) {
+      throw new Error("Data pelajaran tidak ditemukan");
+    }
+  }
+
   const hashedPassword = await hashPassword(password);
   await sendOtp({
     email,
     type: "register",
-    metadata: { username, password: hashedPassword, telephone },
+    metadata: {
+      username,
+      password: hashedPassword,
+      telephone,
+      pelajaranId: pelajaranId ?? [],
+    },
   });
 };
 
@@ -49,6 +73,16 @@ export const verifyRegisterWithOtp = async ({ email, otp }) => {
       email,
       password: metadata.password,
       telephone: metadata.telephone,
+
+      // pelajaran opsional
+      ...(metadata.pelajaranId?.length > 0 && {
+        pelajaran: {
+          connect: metadata.pelajaranId.map((id) => ({ id })),
+        },
+      }),
+    },
+    include: {
+      pelajaran: true,
     },
   });
 
@@ -101,7 +135,7 @@ export const loginUser = async ({ email, password }) => {
 // update
 export const updateUser = async (
   id,
-  { username, email, telephone, password, role },
+  { username, email, telephone, password, role, pelajaranId },
 ) => {
   // cek user
   const existingUser = await prisma.user.findUnique({
@@ -141,6 +175,16 @@ export const updateUser = async (
   // berarti role nya ga ada
   if (role && !validRoles.includes(role)) throw new Error("Role tidak valid");
 
+  // validasi pelajaran
+  if (pelajaranId && pelajaranId.length > 0) {
+    const found = await prisma.pelajaran.findMany({
+      where: { id: { in: pelajaranId } },
+    });
+    if (found.length !== pelajaranId.length) {
+      throw new Error("Data pelajaran tidak ditemukan");
+    }
+  }
+
   // update data hanya field yang dikirim
   const data = {};
   if (username) data.username = username;
@@ -148,6 +192,13 @@ export const updateUser = async (
   if (password) data.password = await hashPassword(password);
   if (telephone) data.telephone = telephone;
   if (role) data.role = role;
+
+  // jika ada pelajaran yang di isi, set disemua relasi
+  if (pelajaranId !== undefined) {
+    data.pelajaran = {
+      set: pelajaranId.map((id) => ({ id })),
+    };
+  }
 
   const updateUser = await prisma.user.update({
     where: { id },
@@ -158,6 +209,7 @@ export const updateUser = async (
       email: true,
       telephone: true,
       role: true,
+      pelajaran: true,
     },
   });
 
@@ -173,6 +225,7 @@ export const getAllUser = async () => {
       email: true,
       telephone: true,
       role: true,
+      pelajaran: true,
       isVerified: true,
     },
   });
@@ -190,6 +243,7 @@ export const getOneUser = async (id) => {
       email: true,
       telephone: true,
       role: true,
+      pelajaran: true,
       isVerified: true,
     },
   });

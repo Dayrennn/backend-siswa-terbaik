@@ -3,7 +3,7 @@ import prisma from "../config/prisma.js";
 export const addKriteria = async ({ namaKriteria, bobot, jenis }) => {
   // cek field
   if (!namaKriteria?.trim() || !jenis?.trim()) {
-    throw new Error("Data wajib di isi");
+    throw new Error("Nama kriteria wajib di isi");
   }
 
   if (bobot === undefined || bobot === null) {
