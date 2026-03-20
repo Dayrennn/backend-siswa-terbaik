@@ -6,12 +6,14 @@ import kriteriaRoutes from "../routes/kriteriaRoutes.js";
 import pelajaranRoutes from "../routes/pelajaranRoutes.js";
 import kehadiranRoutes from "../routes/kehadiranRoutes.js";
 import morgan from "morgan";
+import cors from "cors";
 
 const app = express();
 const port = 3000;
 
 app.use(morgan("dev"));
 app.use(express.json());
+app.use(cors({ origin: "http://localhost:3001" }));
 
 // route app
 app.use("/auth", userRoutes);

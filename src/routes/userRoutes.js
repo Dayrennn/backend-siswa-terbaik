@@ -20,7 +20,7 @@ router.post(
   verifyRegisterOtp,
 );
 router.post("/register", authMiddleware, authorizeRole("Admin"), register);
-router.put("/user/:id", authMiddleware, authorizeRole("Admin"), update);
+router.put("/users/:id", authMiddleware, authorizeRole("Admin"), update);
 
 router.get("/users", authMiddleware, authorizeRole("Admin"), getUsers);
 router.get("/users/:id", authMiddleware, authorizeRole("Admin"), getUserById);
