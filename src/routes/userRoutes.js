@@ -7,6 +7,8 @@ import {
   getUsers,
   getUserById,
   logout,
+  getMe,
+  removeUser,
 } from "../controllers/userControllers.js";
 import { authorizeRole } from "../middleware/authorizeRoleMiddleware.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
@@ -26,5 +28,8 @@ router.put("/users/:id", authMiddleware, authorizeRole("Admin"), update);
 
 router.get("/users", authMiddleware, authorizeRole("Admin"), getUsers);
 router.get("/users/:id", authMiddleware, authorizeRole("Admin"), getUserById);
+router.post("/users/:id", authMiddleware, authorizeRole("Admin"), removeUser);
+
+router.get("/me", authMiddleware, getMe);
 
 export default router;

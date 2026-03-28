@@ -5,6 +5,7 @@ import {
   verifyRegisterWithOtp,
   getAllUser,
   getOneUser,
+  deleteUser,
 } from "../services/userServices.js";
 import { generateToken } from "../utils/jwt.js";
 
@@ -48,7 +49,7 @@ export const login = async (req, res) => {
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 1000, // seminggu
     });
 
@@ -67,7 +68,11 @@ export const login = async (req, res) => {
 };
 
 export const logout = (req, res) => {
-  res.clearCookie("token");
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax", // ← harus sama dengan saat set cookie
+  });
   res.status(200).json({ message: "Logout Berhasil" });
 };
 
@@ -115,6 +120,25 @@ export const getUserById = async (req, res) => {
     res
       .status(200)
       .json({ message: "Berhasil mengambil data user by id", data: user });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+export const getMe = async (req, res) => {
+  try {
+    const user = await getOneUser(req.user.id);
+    res.status(200).json({ message: "berhasil", data: user });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+export const removeUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await deleteUser(id);
+    res.status(200).json({ message: "Berhasil menghapus data", data: user });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }

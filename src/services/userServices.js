@@ -208,7 +208,7 @@ export const getAllUser = async () => {
   return users;
 };
 
-// get one user
+// get one user & get me
 export const getOneUser = async (id) => {
   const users = await prisma.user.findUnique({
     where: { id },
@@ -223,5 +223,12 @@ export const getOneUser = async (id) => {
     },
   });
 
+  return users;
+};
+
+export const deleteUser = async (id) => {
+  const users = await prisma.user.delete({
+    where: { id },
+  });
   return users;
 };
