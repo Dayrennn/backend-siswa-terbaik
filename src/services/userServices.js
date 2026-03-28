@@ -93,14 +93,6 @@ export const verifyRegisterWithOtp = async ({ email, otp }) => {
 export const loginUser = async ({ email, password }) => {
   const user = await prisma.user.findUnique({
     where: { email },
-    select: {
-      id: true,
-      username: true,
-      email: true,
-      password: true,
-      role: true,
-      telephone: true,
-    },
   });
 
   if (!user) {
@@ -113,23 +105,7 @@ export const loginUser = async ({ email, password }) => {
     throw new Error("Password salah");
   }
 
-  // generate token
-  const token = generateToken({
-    id: user.id,
-    email: user.email,
-    role: user.role,
-  });
-
-  return {
-    user: {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      role: user.role,
-      telephone: user.telephone,
-    },
-    token,
-  };
+  return user;
 };
 
 // update

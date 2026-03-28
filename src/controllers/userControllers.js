@@ -5,6 +5,7 @@ import {
   verifyRegisterWithOtp,
   getAllUser,
   getOneUser,
+  generateToken,
 } from "../services/userServices.js";
 
 // register & kirim otp
@@ -39,11 +40,35 @@ export const verifyRegisterOtp = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const result = await loginUser({ email, password });
-    res.status(200).json({ message: "Login Berhasil", data: result });
+    const user = await loginUser({ email, password });
+
+    // generate token di controller HTTP Only
+    const token = generateToken({ id: user.id, role: user.role });
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 1000, // seminggu
+    });
+
+    res.status(200).json({
+      message: "Login Berhasil",
+      data: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      },
+    });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
+};
+
+export const logout = (req, res) => {
+  res.clearCookie("token");
+  res.status(200).json({ message: "Logout Berhasil" });
 };
 
 // update
@@ -64,7 +89,7 @@ export const update = async (req, res) => {
 
     res
       .status(200)
-      .json({ message: "Data berhasil dirubah", data: updateUser });
+      .json({ message: "Data berhasil dirubah", data: updatedUser });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }

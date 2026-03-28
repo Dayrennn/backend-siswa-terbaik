@@ -6,6 +6,7 @@ import {
   verifyRegisterOtp,
   getUsers,
   getUserById,
+  logout,
 } from "../controllers/userControllers.js";
 import { authorizeRole } from "../middleware/authorizeRoleMiddleware.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
@@ -13,6 +14,7 @@ import { authMiddleware } from "../middleware/authMiddleware.js";
 const router = express.Router();
 
 router.post("/login", login);
+router.post("/logout", logout);
 router.post(
   "/verify-otp",
   authMiddleware,
