@@ -5,8 +5,8 @@ import {
   verifyRegisterWithOtp,
   getAllUser,
   getOneUser,
-  generateToken,
 } from "../services/userServices.js";
+import { generateToken } from "../utils/jwt.js";
 
 // register & kirim otp
 export const register = async (req, res) => {
