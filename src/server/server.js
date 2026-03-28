@@ -7,13 +7,16 @@ import pelajaranRoutes from "../routes/pelajaranRoutes.js";
 import kehadiranRoutes from "../routes/kehadiranRoutes.js";
 import morgan from "morgan";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 
 const app = express();
 const port = 3000;
 
 app.use(morgan("dev"));
+
+app.use(cors({ origin: "http://localhost:3001", credentials: true }));
 app.use(express.json());
-app.use(cors({ origin: "http://localhost:3001" }));
+app.use(cookieParser());
 
 // route app
 app.use("/auth", userRoutes);
