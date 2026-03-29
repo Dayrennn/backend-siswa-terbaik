@@ -3,6 +3,7 @@ import {
   updatePelajaran,
   getAllPelajaran,
   getOnePelajaran,
+  deletePelajaran,
 } from "../services/pelajaranService.js";
 
 export const createPelajaran = async (req, res) => {
@@ -48,6 +49,19 @@ export const getPelajaranById = async (req, res) => {
     const pelajarans = await getOnePelajaran(id);
     res.status(200).json({
       message: "Berhasil mengambil data pelajaran by id",
+      data: pelajarans,
+    });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+export const removePelajaran = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const pelajarans = await deletePelajaran(id);
+    res.status(200).json({
+      message: "Berhasil hapus data pelajaran",
       data: pelajarans,
     });
   } catch (error) {

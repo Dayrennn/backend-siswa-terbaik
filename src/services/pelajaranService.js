@@ -80,3 +80,11 @@ export const getOnePelajaran = async (id) => {
 
   return pelajarans;
 };
+
+export const deletePelajaran = async (id) => {
+  const pelajarans = await prisma.pelajaran.delete({
+    where: { id },
+  });
+
+  return pelajarans;
+};
