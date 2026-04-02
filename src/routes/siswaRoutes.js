@@ -4,6 +4,7 @@ import {
   getSiswaById,
   modifySiswa,
   seeAllSiswa,
+  removeSiswa,
 } from "../controllers/siswaController.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 import { authorizeRole } from "../middleware/authorizeRoleMiddleware.js";
@@ -25,5 +26,12 @@ router.put(
 
 router.get("/", seeAllSiswa);
 router.get("/:id", getSiswaById);
+
+router.delete(
+  "/delete/:id",
+  authMiddleware,
+  authorizeRole("Admin"),
+  removeSiswa,
+);
 
 export default router;

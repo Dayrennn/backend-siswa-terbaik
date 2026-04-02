@@ -1,10 +1,10 @@
 import prisma from "../config/prisma.js";
 
 // tambah siswa
-export const addSiswa = async ({ nis, name, tanggalLahir, kelas }) => {
+export const addSiswa = async ({ nis, namaSiswa, tanggalLahir, kelas }) => {
   const existingSiswa = await prisma.siswa.findFirst({
     where: {
-      OR: [{ nis }, { name }],
+      OR: [{ nis }, { namaSiswa }],
     },
   });
 
@@ -18,7 +18,7 @@ export const addSiswa = async ({ nis, name, tanggalLahir, kelas }) => {
   const newSiswa = await prisma.siswa.create({
     data: {
       nis: nis,
-      name: name,
+      namaSiswa: namaSiswa,
       tanggalLahir: new Date(tanggalLahir),
       kelas: kelas,
       // isi nilai otomatis, default 0
@@ -49,7 +49,7 @@ export const addSiswa = async ({ nis, name, tanggalLahir, kelas }) => {
 // update siswa
 export const updateSiswa = async (
   id,
-  { nis, name, tanggalLahir, kelas, nilai, nilaiKriteria },
+  { nis, namaSiswa, tanggalLahir, kelas, nilai, nilaiKriteria },
 ) => {
   const existingSiswa = await prisma.siswa.findUnique({
     where: { id },
@@ -57,12 +57,13 @@ export const updateSiswa = async (
 
   if (!existingSiswa) throw new Error("Siswa tidak ditemukan");
 
-  if (nis || name) {
+  if (nis || namaSiswa) {
     const existing = await prisma.siswa.findFirst({
       where: {
-        OR: [nis ? { nis } : undefined, name ? { name } : undefined].filter(
-          Boolean,
-        ),
+        OR: [
+          nis ? { nis } : undefined,
+          namaSiswa ? { namaSiswa } : undefined,
+        ].filter(Boolean),
         NOT: { id },
       },
     });
@@ -71,7 +72,7 @@ export const updateSiswa = async (
 
   const data = {};
   if (nis) data.nis = nis;
-  if (name) data.name = name;
+  if (namaSiswa) data.namaSiswa = namaSiswa;
   if (tanggalLahir) data.tanggalLahir = new Date(tanggalLahir);
   if (kelas) data.kelas = kelas;
 
@@ -161,5 +162,22 @@ export const getOneSiswa = async (id) => {
     },
   });
 
+  return siswas;
+};
+
+// delete siswa
+export const deleteSiswa = async (id) => {
+  await prisma.nilai.deleteMany({
+    where: { siswaId: id },
+  });
+  await prisma.nilaiKriteria.deleteMany({
+    where: { siswaId: id },
+  });
+  await prisma.kehadiran.deleteMany({
+    where: { siswaId: id },
+  });
+  const siswas = await prisma.siswa.delete({
+    where: { id },
+  });
   return siswas;
 };

@@ -3,12 +3,14 @@ import {
   getAllSiswa,
   getOneSiswa,
   updateSiswa,
+  deleteSiswa,
 } from "../services/siswaServices.js";
 
 export const createSiswa = async (req, res) => {
   try {
-    const { nis, name, tanggalLahir, kelas, nilai, pelajaranId } = req.body;
-    await addSiswa({ nis, name, tanggalLahir, kelas, nilai, pelajaranId });
+    const { nis, namaSiswa, tanggalLahir, kelas, nilai, pelajaranId } =
+      req.body;
+    await addSiswa({ nis, namaSiswa, tanggalLahir, kelas, nilai, pelajaranId });
     res.status(200).json({ message: "Data siswa berhasil ditambah" });
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -18,10 +20,11 @@ export const createSiswa = async (req, res) => {
 export const modifySiswa = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nis, name, tanggalLahir, kelas, nilai, pelajaranId } = req.body;
+    const { nis, namaSiswa, tanggalLahir, kelas, nilai, pelajaranId } =
+      req.body;
     const updatedSiswa = await updateSiswa(id, {
       nis,
-      name,
+      namaSiswa,
       tanggalLahir,
       kelas,
       nilai,
@@ -53,6 +56,18 @@ export const getSiswaById = async (req, res) => {
     res
       .status(200)
       .json({ message: "Berhasil mengambil data siswa by id", data: siswas });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+export const removeSiswa = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const siswas = await deleteSiswa(id);
+    res
+      .status(200)
+      .json({ message: "Data siswa berhasil dihapus", data: siswas });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }

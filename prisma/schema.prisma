@@ -39,7 +39,7 @@ model Otp {
 model Siswa {
   id           String      @id @unique @default(uuid())
   nis          String?
-  name         String 
+  namaSiswa         String 
   tanggalLahir DateTime
   kelas        String?
   createdAt    DateTime   @default(now())
