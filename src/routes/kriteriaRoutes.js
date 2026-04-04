@@ -6,6 +6,7 @@ import {
   getKriteriaById,
   modifyKriteria,
   getAllKriteria,
+  removeKriteria,
 } from "../controllers/kriteriaController.js";
 
 const router = express.Router();
@@ -36,6 +37,13 @@ router.get(
   authMiddleware,
   authorizeRole("Admin", "WakilKepalaSekolah"),
   getKriteriaById,
+);
+
+router.delete(
+  "/delete/:id",
+  authMiddleware,
+  authorizeRole("Admin", "WakilKepalaSekolah"),
+  removeKriteria,
 );
 
 export default router;

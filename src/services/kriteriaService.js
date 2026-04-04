@@ -21,7 +21,7 @@ export const addKriteria = async ({ namaKriteria, bobot, jenis }) => {
   const newKriteria = await prisma.kriteria.create({
     data: {
       namaKriteria: namaKriteria,
-      bobot: bobot,
+      bobot: parseFloat(bobot),
       jenis: jenis,
     },
   });
@@ -48,7 +48,7 @@ export const updateKriteria = async (id, { namaKriteria, bobot, jenis }) => {
 
   const data = {};
   if (namaKriteria) data.namaKriteria = namaKriteria;
-  if (bobot) data.bobot = bobot;
+  if (bobot) data.bobot = parseFloat(bobot);
   if (jenis) data.jenis = jenis;
 
   const updateKriteria = await prisma.kriteria.update({
@@ -82,4 +82,14 @@ export const getOneKriteria = async (id) => {
     },
   });
   return kriterias;
+};
+
+export const deleteKriteria = async (id) => {
+  await prisma.nilaiKriteria.deleteMany({
+    where: { kriteriaId: id },
+  });
+  const krterias = await prisma.kriteria.delete({
+    where: { id },
+  });
+  return krterias;
 };

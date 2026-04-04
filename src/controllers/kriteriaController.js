@@ -1,5 +1,6 @@
 import {
   addKriteria,
+  deleteKriteria,
   getKriteria,
   getOneKriteria,
   updateKriteria,
@@ -51,6 +52,21 @@ export const getKriteriaById = async (req, res) => {
     res
       .status(200)
       .json({ message: "berhasil mendapatkan data kriteria", data: kriterias });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+export const removeKriteria = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedKriteria = await deleteKriteria(id);
+    res
+      .status(200)
+      .json({
+        message: "Data kriteria berhasil dihapus",
+        data: deletedKriteria,
+      });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
