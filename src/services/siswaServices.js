@@ -1,7 +1,13 @@
 import prisma from "../config/prisma.js";
 
 // tambah siswa
-export const addSiswa = async ({ nis, namaSiswa, tanggalLahir, kelas }) => {
+export const addSiswa = async ({
+  nis,
+  namaSiswa,
+  tanggalLahir,
+  kelas,
+  tahunAjaranId,
+}) => {
   const existingSiswa = await prisma.siswa.findFirst({
     where: {
       OR: [{ nis }, { namaSiswa }],
@@ -26,6 +32,7 @@ export const addSiswa = async ({ nis, namaSiswa, tanggalLahir, kelas }) => {
         create: allPelajaran.map((pelajaran) => ({
           pelajaranId: pelajaran.id,
           nilai: 0,
+          tahunAjaranId: tahunAjaranId,
         })),
       },
       nilaiKriteria: {
@@ -33,6 +40,9 @@ export const addSiswa = async ({ nis, namaSiswa, tanggalLahir, kelas }) => {
           kriteriaId: kriteria.id,
           nilai: 0,
         })),
+      },
+      tahunAjaran: {
+        connect: { id: tahunAjaranId },
       },
       kehadiran: {
         create: allKehadiran.map((kehadiran) => ({
@@ -129,6 +139,7 @@ export const updateSiswa = async (
 export const getAllSiswa = async () => {
   const siswas = await prisma.siswa.findMany({
     include: {
+      tahunAjaran: true,
       nilai: {
         include: {
           pelajaran: true,
@@ -178,6 +189,27 @@ export const deleteSiswa = async (id) => {
   });
   const siswas = await prisma.siswa.delete({
     where: { id },
+  });
+  return siswas;
+};
+
+export const getSiswaByTahunAjaran = async (tahunAjaranId) => {
+  const siswas = await prisma.siswa.findMany({
+    where: { tahunAjaranId },
+    include: {
+      nis: true,
+      tahunAjaran: true,
+      nilai: {
+        include: {
+          pelajaran: true,
+        },
+      },
+      nilaiKriteria: {
+        include: {
+          kriteria: true,
+        },
+      },
+    },
   });
   return siswas;
 };

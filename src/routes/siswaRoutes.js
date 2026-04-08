@@ -5,6 +5,7 @@ import {
   modifySiswa,
   seeAllSiswa,
   removeSiswa,
+  seeAllSiswaByTahunAjaran,
 } from "../controllers/siswaController.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 import { authorizeRole } from "../middleware/authorizeRoleMiddleware.js";
@@ -12,7 +13,7 @@ import { authorizeRole } from "../middleware/authorizeRoleMiddleware.js";
 const router = express.Router();
 
 router.post(
-  "/create",
+  "/create/:tahunAjaranId",
   authMiddleware,
   authorizeRole("Admin", "Guru", "WaliKelas"),
   createSiswa,
@@ -23,6 +24,8 @@ router.put(
   authorizeRole("Admin", "Guru", "WaliKelas"),
   modifySiswa,
 );
+
+router.get("/tahun-ajaran/:tahunAjaranId", seeAllSiswaByTahunAjaran);
 
 router.get("/", seeAllSiswa);
 router.get("/:id", getSiswaById);

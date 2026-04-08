@@ -42,6 +42,7 @@ model Siswa {
   namaSiswa         String 
   tanggalLahir DateTime
   kelas        String?
+  tahunAjaranId String?
   createdAt    DateTime   @default(now())
   updateAt     DateTime   @updatedAt
 
@@ -53,6 +54,9 @@ model Siswa {
   poinMinus PoinMinus[]
   eskul SiswaEskul[]
   kehadiran Kehadiran[]
+  ranking Ranking[]
+
+  tahunAjaran TahunAjaran? @relation(fields: [tahunAjaranId], references: [id])
 }
 
 model Nilai {
@@ -61,9 +65,11 @@ model Nilai {
 
   siswaId           String    
   pelajaranId   String
+  tahunAjaranId String
 
   siswa             Siswa           @relation(fields: [siswaId],  references: [id])
   pelajaran     Pelajaran   @relation(fields: [pelajaranId], references: [id])
+  tahunAjaran TahunAjaran @relation(fields: [tahunAjaranId], references: [id])
 
    @@unique([siswaId, pelajaranId]) 
 }
@@ -148,13 +154,28 @@ model SiswaEskul {
 
 model Kehadiran {
   id String @id @default(uuid())
-  tahunAjaran String
+  tahunAjaranId String?
   siswaId String
   statusKehadiran StatusKehadiran @default(Alpha)
   tanggalKehadiran DateTime @default(now())
 
   siswa Siswa @relation(fields: [siswaId], references: [id])
+  tahunAjaran TahunAjaran? @relation(fields: [tahunAjaranId], references: [id])
   @@unique([siswaId, tanggalKehadiran])
+}
+
+model Ranking {
+  id String @id @default(uuid())
+  tahunAjaranId String
+  siswaId String
+  nilaiAkhir Float
+  peringkat Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  siswa Siswa @relation(fields: [siswaId], references: [id])
+  tahunAjaran TahunAjaran @relation(fields: [tahunAjaranId], references: [id])
+  @@unique([siswaId, tahunAjaranId])
 }
 
 enum StatusKehadiran {
@@ -170,4 +191,20 @@ enum Role {
   KepalaSekolah
   WakilKepalaSekolah
   Admin
+}
+
+model TahunAjaran {
+  id String @id @default(uuid())
+  namaTahunAjaran String
+  status StatusTahunAjaran @default(Aktif)
+
+  siswa Siswa[]
+  kehadiran Kehadiran[]
+  nilai Nilai[]
+  ranking Ranking[]
+}
+
+enum StatusTahunAjaran {
+  Aktif
+  Nonaktif
 }

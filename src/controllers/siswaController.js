@@ -4,13 +4,24 @@ import {
   getOneSiswa,
   updateSiswa,
   deleteSiswa,
+  getSiswaByTahunAjaran,
 } from "../services/siswaServices.js";
 
 export const createSiswa = async (req, res) => {
   try {
+    const { tahunAjaranId } = req.params;
     const { nis, namaSiswa, tanggalLahir, kelas, nilai, pelajaranId } =
       req.body;
-    await addSiswa({ nis, namaSiswa, tanggalLahir, kelas, nilai, pelajaranId });
+    await addSiswa({
+      nis,
+      namaSiswa,
+      tanggalLahir,
+      kelas,
+      nilai,
+      pelajaranId,
+      tahunAjaranId,
+    });
+
     res.status(200).json({ message: "Data siswa berhasil ditambah" });
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -29,6 +40,7 @@ export const modifySiswa = async (req, res) => {
       kelas,
       nilai,
       pelajaranId,
+      tahunAjaranId: req.body.tahunAjaranId,
     });
     res
       .status(200)
@@ -68,6 +80,19 @@ export const removeSiswa = async (req, res) => {
     res
       .status(200)
       .json({ message: "Data siswa berhasil dihapus", data: siswas });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+export const seeAllSiswaByTahunAjaran = async (req, res) => {
+  try {
+    const { tahunAjaranId } = req.params;
+    const siswas = await getSiswaByTahunAjaran(tahunAjaranId);
+    res.status(200).json({
+      message: "Berhasil ambil data siswa by tahun ajaran",
+      data: siswas,
+    });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
