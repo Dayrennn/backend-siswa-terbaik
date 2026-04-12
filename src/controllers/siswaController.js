@@ -10,19 +10,21 @@ import {
 export const createSiswa = async (req, res) => {
   try {
     const { tahunAjaranId } = req.params;
-    const { nis, namaSiswa, tanggalLahir, kelas, nilai, pelajaranId } =
+    const { nis, namaSiswa, tanggalLahir, kelasId, nilai, pelajaranId } =
       req.body;
-    await addSiswa({
+    const siswas = await addSiswa({
       nis,
       namaSiswa,
       tanggalLahir,
-      kelas,
+      kelasId,
       nilai,
       pelajaranId,
       tahunAjaranId,
     });
 
-    res.status(200).json({ message: "Data siswa berhasil ditambah" });
+    res
+      .status(200)
+      .json({ message: "Data siswa berhasil ditambah", data: siswas });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -31,13 +33,13 @@ export const createSiswa = async (req, res) => {
 export const modifySiswa = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nis, namaSiswa, tanggalLahir, kelas, nilai, pelajaranId } =
+    const { nis, namaSiswa, tanggalLahir, kelasId, nilai, pelajaranId } =
       req.body;
     const updatedSiswa = await updateSiswa(id, {
       nis,
       namaSiswa,
       tanggalLahir,
-      kelas,
+      kelasId,
       nilai,
       pelajaranId,
       tahunAjaranId: req.body.tahunAjaranId,

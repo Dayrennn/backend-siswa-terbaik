@@ -5,7 +5,7 @@ export const addSiswa = async ({
   nis,
   namaSiswa,
   tanggalLahir,
-  kelas,
+  kelasId,
   tahunAjaranId,
 }) => {
   const existingSiswa = await prisma.siswa.findFirst({
@@ -26,7 +26,7 @@ export const addSiswa = async ({
       nis: nis,
       namaSiswa: namaSiswa,
       tanggalLahir: new Date(tanggalLahir),
-      kelas: kelas,
+      kelas: kelasId ? { connect: { id: kelasId } } : undefined,
       // isi nilai otomatis, default 0
       nilai: {
         create: allPelajaran.map((pelajaran) => ({
@@ -59,7 +59,7 @@ export const addSiswa = async ({
 // update siswa
 export const updateSiswa = async (
   id,
-  { nis, namaSiswa, tanggalLahir, kelas, nilai, nilaiKriteria },
+  { nis, namaSiswa, tanggalLahir, kelasId, nilai, nilaiKriteria },
 ) => {
   const existingSiswa = await prisma.siswa.findUnique({
     where: { id },
@@ -84,7 +84,7 @@ export const updateSiswa = async (
   if (nis) data.nis = nis;
   if (namaSiswa) data.namaSiswa = namaSiswa;
   if (tanggalLahir) data.tanggalLahir = new Date(tanggalLahir);
-  if (kelas) data.kelas = kelas;
+  if (kelasId) data.kelas = { connect: { id: kelasId } };
 
   // Update nilai jika dikirim
   if (nilai) {
@@ -197,7 +197,7 @@ export const getSiswaByTahunAjaran = async (tahunAjaranId) => {
   const siswas = await prisma.siswa.findMany({
     where: { tahunAjaranId },
     include: {
-      nis: true,
+      kelas: true,
       tahunAjaran: true,
       nilai: {
         include: {

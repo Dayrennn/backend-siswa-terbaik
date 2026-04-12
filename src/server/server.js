@@ -6,6 +6,8 @@ import kriteriaRoutes from "../routes/kriteriaRoutes.js";
 import pelajaranRoutes from "../routes/pelajaranRoutes.js";
 import kehadiranRoutes from "../routes/kehadiranRoutes.js";
 import tahunAjaranRoutes from "../routes/tahunAjaranRoutes.js";
+import kelasRoutes from "../routes/kelasRoutes.js";
+import pertemuanRoutes from "../routes/pertemuanRoutes.js";
 import morgan from "morgan";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -27,6 +29,8 @@ app.use("/kriteria", kriteriaRoutes);
 app.use("/pelajaran", pelajaranRoutes);
 app.use("/kehadiran", kehadiranRoutes);
 app.use("/tahun-ajaran", tahunAjaranRoutes);
+app.use("/kelas", kelasRoutes);
+app.use("/pertemuan", pertemuanRoutes);
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

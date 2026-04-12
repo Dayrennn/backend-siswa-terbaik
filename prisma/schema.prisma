@@ -41,7 +41,7 @@ model Siswa {
   nis          String?
   namaSiswa         String 
   tanggalLahir DateTime
-  kelas        String?
+  kelasId      String?
   tahunAjaranId String?
   createdAt    DateTime   @default(now())
   updateAt     DateTime   @updatedAt
@@ -57,6 +57,16 @@ model Siswa {
   ranking Ranking[]
 
   tahunAjaran TahunAjaran? @relation(fields: [tahunAjaranId], references: [id])
+  kelas Kelas? @relation(fields: [kelasId], references: [id])
+}
+
+model Kelas {
+  id String @id @default(uuid())
+  kodeKelas String
+  namaKelas String
+
+  siswa Siswa[]
+  pertemuan Pertemuan[]
 }
 
 model Nilai {
@@ -155,13 +165,28 @@ model SiswaEskul {
 model Kehadiran {
   id String @id @default(uuid())
   tahunAjaranId String?
+  pertemuanId String
   siswaId String
   statusKehadiran StatusKehadiran @default(Alpha)
   tanggalKehadiran DateTime @default(now())
 
   siswa Siswa @relation(fields: [siswaId], references: [id])
   tahunAjaran TahunAjaran? @relation(fields: [tahunAjaranId], references: [id])
+  pertemuan Pertemuan @relation(fields: [pertemuanId], references: [id])
   @@unique([siswaId, tanggalKehadiran])
+}
+
+model Pertemuan {
+  id String @id @default(uuid())
+  tahunAjaranId String?
+  tanggal DateTime
+  kelasId String
+  namaPertemuan String
+  createdAt DateTime @default(now())
+
+  tahunAjaran TahunAjaran? @relation(fields: [tahunAjaranId], references: [id])
+  kelas Kelas? @relation(fields: [kelasId], references: [id])
+  kehadiran Kehadiran[]
 }
 
 model Ranking {
@@ -202,6 +227,7 @@ model TahunAjaran {
   kehadiran Kehadiran[]
   nilai Nilai[]
   ranking Ranking[]
+  pertemuan Pertemuan[]
 }
 
 enum StatusTahunAjaran {
