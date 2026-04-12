@@ -140,6 +140,7 @@ export const getAllSiswa = async () => {
   const siswas = await prisma.siswa.findMany({
     include: {
       tahunAjaran: true,
+      kelas: true,
       nilai: {
         include: {
           pelajaran: true,
