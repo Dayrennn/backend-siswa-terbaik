@@ -1,73 +1,67 @@
 import {
-  addKriteria,
-  deleteKriteria,
-  getKriteria,
-  getOneKriteria,
-  updateKriteria,
-} from "../services/kriteriaService.js";
+    addKriteria,
+    deleteKriteria,
+    getKriteria,
+    getOneKriteria,
+    updateKriteria,
+} from '../services/kriteriaService.js';
 
 export const createKriteria = async (req, res) => {
-  try {
-    const { namaKriteria, bobot, jenis } = req.body;
-    await addKriteria({ namaKriteria, bobot, jenis });
-    res.status(200).json({ message: "Data kriteria berhasil ditambah" });
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
+    try {
+        const { namaKriteria, bobot, jenis } = req.body;
+        await addKriteria({ namaKriteria, bobot, jenis });
+        res.status(200).json({ message: 'Data kriteria berhasil ditambah' });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
 };
 
 export const modifyKriteria = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { namaKriteria, bobot, jenis } = req.body;
-    const updatedKritera = await updateKriteria(id, {
-      namaKriteria,
-      bobot,
-      jenis,
-    });
-    res
-      .status(200)
-      .json({ message: "Data berhasil diubah", data: updatedKritera });
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
+    try {
+        const { id } = req.params;
+        const { namaKriteria, bobot, jenis } = req.body;
+        const updatedKritera = await updateKriteria(id, {
+            namaKriteria,
+            bobot,
+            jenis,
+        });
+        res.status(200).json({ message: 'Data berhasil diubah', data: updatedKritera });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
 };
 
 export const getAllKriteria = async (req, res) => {
-  try {
-    const kriterias = await getKriteria();
-    res.status(200).json({
-      message: "Berhasil mendapatkan data kriteria",
-      data: kriterias,
-    });
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
+    try {
+        const kriterias = await getKriteria();
+        res.status(200).json({
+            message: 'Berhasil mendapatkan data kriteria',
+            data: kriterias,
+        });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
 };
 
 export const getKriteriaById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const kriterias = await getOneKriteria(id);
-    res
-      .status(200)
-      .json({ message: "berhasil mendapatkan data kriteria", data: kriterias });
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
+    try {
+        const { id } = req.params;
+        const kriterias = await getOneKriteria(id);
+        res.status(200).json({ message: 'berhasil mendapatkan data kriteria', data: kriterias });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
 };
 
 export const removeKriteria = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const deletedKriteria = await deleteKriteria(id);
-    res
-      .status(200)
-      .json({
-        message: "Data kriteria berhasil dihapus",
-        data: deletedKriteria,
-      });
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
+    try {
+        const { id } = req.params;
+        const deletedKriteria = await deleteKriteria(id);
+        res.status(200).json({
+            message: 'Data kriteria berhasil dihapus',
+            data: deletedKriteria,
+        });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
 };
