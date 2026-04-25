@@ -33,12 +33,108 @@ export const addPertemuan = async ({
 
   const newPertemuan = await prisma.pertemuan.create({
     data: {
-      tahunAjaranId: tahunAjaranId,
-      tanggal: tanggal,
+      tanggal: new Date(tanggal),
       kelasId: kelasId,
       namaPertemuan: namaPertemuan,
+      tahunAjaran: {
+        connect: { id: tahunAjaranId },
+      },
     },
   });
 
   return newPertemuan;
+};
+
+export const updatePertemuan = async (
+  id,
+  { tahunAjaranId, tanggal, kelasId, namaPertemuan },
+) => {
+  const existingPertemuan = await prisma.pertemuan.findUnique({
+    where: { id },
+  });
+
+  if (!existingPertemuan) throw new Error("Pertemuan Tidak ditemukan");
+
+  if (namaPertemuan) {
+    const existing = await prisma.pertemuan.findFirst({
+      where: {
+        namaPertemuan,
+        tahunAjaranId: tahunAjaranId || existingPertemuan.tahunAjaranId,
+        kelasId: kelasId || existingPertemuan.kelasId,
+        NOT: { id },
+      },
+    });
+    if (existing) {
+      throw new Error("Nama pertemuan sudah digunakan");
+    }
+  }
+
+  const data = {};
+  if (tahunAjaranId) {
+    data.tahunAjaranId = tahunAjaranId;
+  }
+  if (tanggal) {
+    data.tanggal = new Date(tanggal);
+  }
+  if (kelasId) {
+    data.kelasId = kelasId;
+  }
+  if (namaPertemuan) {
+    data.namaPertemuan = namaPertemuan;
+  }
+
+  const updatedPertemuan = await prisma.pertemuan.update({
+    where: { id },
+    data,
+    include: {
+      tahunAjaran: true,
+      kelas: true,
+    },
+  });
+
+  return updatedPertemuan;
+};
+
+export const getAllPertemuan = async () => {
+  const pertemuans = await prisma.pertemuan.findMany({
+    include: {
+      tahunAjaran: true,
+      kelas: true,
+    },
+  });
+
+  return pertemuans;
+};
+
+export const getOnePertemuan = async (id) => {
+  const pertemuans = await prisma.pertemuan.findUnique({
+    where: { id },
+    include: {
+      tahunAjaran: true,
+      kelas: true,
+    },
+  });
+
+  return pertemuans;
+};
+
+export const deletePertemuan = async (id) => {
+  await prisma.kehadiran.deleteMany({
+    where: { pertemuanId: id },
+  });
+  const pertemuans = await prisma.pertemuan.delete({ where: { id } });
+  return pertemuans;
+};
+
+export const getPertemuanByTahunAjaranAndKelas = async (
+  tahunAjaranId,
+  kelasId,
+) => {
+  const pertemuans = await prisma.pertemuan.findMany({
+    where: { tahunAjaranId, kelasId },
+    include: { tahunAjaran: true, kelas: true },
+    orderBy: { tanggal: `desc` },
+  });
+
+  return pertemuans;
 };
