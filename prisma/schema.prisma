@@ -180,7 +180,7 @@ model Pertemuan {
   id String @id @default(uuid())
   tahunAjaranId String?
   tanggal DateTime
-  kelasId String
+  kelasId String?
   namaPertemuan String
   createdAt DateTime @default(now())
 

@@ -10,10 +10,9 @@ import {
 export const createPertemuan = async (req, res) => {
     try {
         const { kelasId } = req.params;
-        const { tahunAjaranId, tanggal, namaPertemuan } = req.body;
+        const { tanggal, namaPertemuan } = req.body;
 
         const pertemuans = await addPertemuan({
-            tahunAjaranId,
             tanggal,
             namaPertemuan,
             kelasId,
@@ -86,7 +85,7 @@ export const seeAllPertemuanByTahunAndKelas = async (req, res) => {
         const pertemuans = await getPertemuanByTahunAjaranAndKelas(tahunAjaranId, kelasId);
         res.status(200).json({
             message: 'Berhasil ambil data pertemuan by tahun dan kelas',
-            dara: pertemuans,
+            data: pertemuans,
         });
     } catch (error) {
         res.status(400).json({ message: error.message });
