@@ -8,12 +8,14 @@ import {
 
 export const createKehadiran = async (req, res) => {
     try {
-        const { siswaId, tahunAjaran, statusKehadiran, tanggalKehadiran } = req.body;
+        const { pertemuanId, tahunAjaranId } = req.params
+        const { siswaId, statusKehadiran } = req.body;
         await addKehadiran({
             siswaId,
-            tahunAjaran,
+            tahunAjaranid,
             statusKehadiran,
             tanggalKehadiran,
+            pertemuanId,
         });
         res.status(200).json({ message: 'Data kehadiran berhasil ditambah' });
     } catch (error) {

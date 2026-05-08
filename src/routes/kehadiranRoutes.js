@@ -12,9 +12,9 @@ import { authorizeRole } from '../middleware/authorizeRoleMiddleware.js';
 
 const router = express.Router();
 router.post(
-    '/create',
+    '/create/:tahunAjaranId/:pertemuanId',
     authMiddleware,
-    authorizeRole('Admin', 'WakilKepalaSekolah'),
+    authorizeRole('Admin', 'Guru', 'WaliKelas'),
     createKehadiran,
 );
 router.put(

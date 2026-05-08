@@ -1,12 +1,15 @@
 import prisma from '../config/prisma.js';
 
-export const addKehadiran = async ({ siswaId, tahunAjaran, statusKehadiran, tanggalKehadiran }) => {
+export const addKehadiran = async ({ siswaId, tahunAjaran, statusKehadiran, tanggalKehadiran, pertemuanId }) => {
     // cek field
     if (!siswaId) {
         throw new Error('Siswa wajib di pilih');
     }
     if (!tahunAjaran?.trim()) {
         throw new Error('Tahun ajaran wajib di isi');
+    }
+    if (!pertemuanId) {
+        throw new Error('Pertemuan wajib di pilih');
     }
 
     const tanggal = new Date(tanggalKehadiran);
@@ -19,6 +22,7 @@ export const addKehadiran = async ({ siswaId, tahunAjaran, statusKehadiran, tang
                 tahunAjaran,
                 statusKehadiran,
                 tanggalKehadiran: tanggal,
+                pertemuanId,
             },
         });
     } catch (error) {
