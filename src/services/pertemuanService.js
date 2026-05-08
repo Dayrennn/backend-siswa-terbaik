@@ -29,7 +29,9 @@ export const addPertemuan = async ({ tahunAjaranId, tanggal, kelasId, namaPertem
     const newPertemuan = await prisma.pertemuan.create({
         data: {
             tanggal: new Date(tanggal),
-            kelasId: kelasId,
+            kelas: {
+                connect: { id: kelasId },
+            },
             namaPertemuan: namaPertemuan,
             tahunAjaran: {
                 connect: { id: tahunAjaranId },
@@ -122,8 +124,13 @@ export const getPertemuanByTahunAjaranAndKelas = async (tahunAjaranId, kelasId) 
     const pertemuans = await prisma.pertemuan.findMany({
         where: { tahunAjaranId, kelasId },
         include: { tahunAjaran: true, kelas: true },
-        orderBy: { tanggal: `desc` },
+        orderBy: { tanggal: `asc` },
     });
+
+    return pertemuans.map((p, index) => ({
+        ...p,
+        nomorUrut: index + 1,
+    }));
 
     return pertemuans;
 };

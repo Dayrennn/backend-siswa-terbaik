@@ -13,7 +13,7 @@ import express from 'express';
 const router = express.Router();
 
 router.post(
-    '/create/:kelasId',
+    '/create/:tahunAjaranId/:kelasId',
     authMiddleware,
     authorizeRole('Admin', 'Guru', 'WaliKelas'),
     createPertemuan,

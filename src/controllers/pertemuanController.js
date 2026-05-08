@@ -9,13 +9,14 @@ import {
 
 export const createPertemuan = async (req, res) => {
     try {
-        const { kelasId } = req.params;
+        const { tahunAjaranId, kelasId } = req.params;
         const { tanggal, namaPertemuan } = req.body;
 
         const pertemuans = await addPertemuan({
             tanggal,
             namaPertemuan,
             kelasId,
+            tahunAjaranId,
         });
 
         res.status(200).json({ message: 'Data pertemuan berhasil ditambah', data: pertemuans });
