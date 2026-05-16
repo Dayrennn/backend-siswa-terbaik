@@ -1,11 +1,18 @@
 import prisma from '../config/prisma.js';
 
-export const addKehadiran = async ({ siswaId, tahunAjaran, statusKehadiran, tanggalKehadiran, pertemuanId }) => {
+export const addKehadiran = async ({
+    siswaId,
+    kelasId,
+    tahunAjaranId,
+    statusKehadiran,
+    tanggalKehadiran,
+    pertemuanId,
+}) => {
     // cek field
     if (!siswaId) {
         throw new Error('Siswa wajib di pilih');
     }
-    if (!tahunAjaran?.trim()) {
+    if (!tahunAjaranId) {
         throw new Error('Tahun ajaran wajib di isi');
     }
     if (!pertemuanId) {
@@ -19,7 +26,8 @@ export const addKehadiran = async ({ siswaId, tahunAjaran, statusKehadiran, tang
         return await prisma.kehadiran.create({
             data: {
                 siswaId,
-                tahunAjaran,
+                tahunAjaranId,
+                kelasId,
                 statusKehadiran,
                 tanggalKehadiran: tanggal,
                 pertemuanId,
@@ -33,26 +41,18 @@ export const addKehadiran = async ({ siswaId, tahunAjaran, statusKehadiran, tang
     }
 };
 
-export const updateKehadiran = async (id, { tahunAjaran, statusKehadiran, tanggalKehadiran }) => {
-    const existingKehadiran = await prisma.kehadiran.findUnique({
-        where: { id },
+export const updateKehadiran = async ({ pertemuanId, kelasId, tahunAjaranId }) => {
+    return await prisma.kehadiran.updateMany({
+        where: {
+            tahunAjaranId,
+            kelasId,
+            pertemuanId,
+            siswaId,
+        },
+        data: {
+            statusKehadiran,
+        }
     });
-
-    if (!existingKehadiran) throw new Error('Data tidak ditemukan');
-
-    const data = {};
-    if (tahunAjaran) data.tahunAjaran = tahunAjaran;
-    if (statusKehadiran) data.statusKehadiran = statusKehadiran;
-    if (tanggalKehadiran) {
-        data.tanggalKehadiran = new Date(tanggalKehadiran);
-    }
-
-    const updateKehadiran = await prisma.kehadiran.update({
-        where: { id },
-        data: data,
-    });
-
-    return updateKehadiran;
 };
 
 export const getAllKehadiran = async () => {
@@ -114,6 +114,23 @@ export const getOneKehadiran = async (id) => {
                     kelas: true,
                 },
             },
+        },
+    });
+
+    return kehadirans;
+};
+
+export const getKehadiranByPertemuan = async ({ tahunAjaranId, kelasId, pertemuanId }) => {
+    const kehadirans = await prisma.kehadiran.findMany({
+        where: {
+            tahunAjaranId,
+            pertemuanId,
+            kelasId,
+        },
+        include: {
+            siswa: true,
+            kelas: true,
+            tahunAjaran: true,
         },
     });
 

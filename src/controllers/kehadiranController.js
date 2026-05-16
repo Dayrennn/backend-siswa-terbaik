@@ -4,20 +4,22 @@ import {
     getAllKehadiran,
     getKehadiranRekap,
     getOneKehadiran,
+    getKehadiranByPertemuan,
 } from '../services/kehadiranService.js';
 
 export const createKehadiran = async (req, res) => {
     try {
-        const { pertemuanId, tahunAjaranId } = req.params
-        const { siswaId, statusKehadiran } = req.body;
-        await addKehadiran({
+        const { pertemuanId, tahunAjaranId, kelasId } = req.params;
+        const { siswaId, statusKehadiran, tanggalKehadiran } = req.body;
+        const result = await addKehadiran({
             siswaId,
-            tahunAjaranid,
+            tahunAjaranId,
+            kelasId,
             statusKehadiran,
             tanggalKehadiran,
             pertemuanId,
         });
-        res.status(200).json({ message: 'Data kehadiran berhasil ditambah' });
+        res.status(200).json({ message: 'Data kehadiran berhasil ditambah', data: result });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
@@ -25,14 +27,16 @@ export const createKehadiran = async (req, res) => {
 
 export const modifyKehadiran = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { tahunAjaran, statusKehadiran, tanggalKehadiran } = req.body;
-        const updatedKehadiran = await updateKehadiran(id, {
-            tahunAjaran,
+        const { tahunAjaranId, kelasId, pertemuanId } = req.params;
+        const { siswaId, statusKehadiran } = req.body;
+        const result = await updateKehadiran({
+            tahunAjaranId,
+            kelasId,
+            pertemuanId,
+            siswaId,
             statusKehadiran,
-            tanggalKehadiran,
         });
-        res.status(200).json({ message: 'Data berhasil disimpan', data: updatedKehadiran });
+        res.status(200).json({ message: 'Data berhasil disimpan', data: result });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
@@ -67,6 +71,19 @@ export const getKehadiranById = async (req, res) => {
         const kehadirans = await getOneKehadiran();
         res.status(200).json({
             message: 'Berhasil ambil data kehadiran by id',
+            data: kehadirans,
+        });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+export const getAbsenByPertemuan = async (req, res) => {
+    try {
+        const { tahunAjaranId, pertemuanId, kelasId } = req.params;
+        const kehadirans = await getKehadiranByPertemuan({ tahunAjaranId, pertemuanId, kelasId });
+        res.status(200).json({
+            message: 'Berhasil ambil data kehadiran by pertemuan',
             data: kehadirans,
         });
     } catch (error) {

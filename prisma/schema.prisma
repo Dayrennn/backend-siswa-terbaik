@@ -67,6 +67,7 @@ model Kelas {
 
   siswa Siswa[]
   pertemuan Pertemuan[]
+  kehadiran Kehadiran[]
 }
 
 model Nilai {
@@ -167,12 +168,14 @@ model Kehadiran {
   tahunAjaranId String?
   pertemuanId String
   siswaId String
+  kelasId String
   statusKehadiran StatusKehadiran @default(Alpha)
   tanggalKehadiran DateTime @default(now())
 
   siswa Siswa @relation(fields: [siswaId], references: [id])
   tahunAjaran TahunAjaran? @relation(fields: [tahunAjaranId], references: [id])
   pertemuan Pertemuan @relation(fields: [pertemuanId], references: [id])
+  kelas Kelas @relation(fields: [kelasId], references: [id])
   @@unique([siswaId, tanggalKehadiran])
 }
 

@@ -10,23 +10,31 @@ export const addSiswa = async ({ nis, namaSiswa, tanggalLahir, kelasId, tahunAja
 
     if (existingSiswa) throw new Error('Data siswa sudah ada');
 
-    // ambil semua pelajaran dan kriteria otomatis
     const allPelajaran = await prisma.pelajaran.findMany();
     const allKriteria = await prisma.kriteria.findMany();
-    const allKehadiran = await prisma.kehadiran.findMany();
+
+    // ambil semua pertemuan di kelas dan tahun ajaran yang sama
+    const allPertemuan = await prisma.pertemuan.findMany({
+        where: {
+            kelasId,
+            tahunAjaranId,
+        },
+    });
 
     const newSiswa = await prisma.siswa.create({
         data: {
-            nis: nis,
-            namaSiswa: namaSiswa,
+            nis,
+            namaSiswa,
             tanggalLahir: new Date(tanggalLahir),
             kelas: kelasId ? { connect: { id: kelasId } } : undefined,
-            // isi nilai otomatis, default 0
+            tahunAjaran: {
+                connect: { id: tahunAjaranId },
+            },
             nilai: {
                 create: allPelajaran.map((pelajaran) => ({
                     pelajaranId: pelajaran.id,
                     nilai: 0,
-                    tahunAjaranId: tahunAjaranId,
+                    tahunAjaranId,
                 })),
             },
             nilaiKriteria: {
@@ -35,12 +43,12 @@ export const addSiswa = async ({ nis, namaSiswa, tanggalLahir, kelasId, tahunAja
                     nilai: 0,
                 })),
             },
-            tahunAjaran: {
-                connect: { id: tahunAjaranId },
-            },
+            // generate kehadiran Alpha per pertemuan
             kehadiran: {
-                create: allKehadiran.map((kehadiran) => ({
-                    kehadiranId: kehadiran.id,
+                create: allPertemuan.map((pertemuan) => ({
+                    pertemuanId: pertemuan.id,
+                    kelasId,
+                    tahunAjaranId,
                     statusKehadiran: 'Alpha',
                 })),
             },
@@ -243,8 +251,8 @@ export const getSiswaWithKehadiran = async () => {
                 select: {
                     statusKehadiran: true,
                     tanggalKehadiran: true,
-                }
-            }
+                },
+            },
         },
     });
 
