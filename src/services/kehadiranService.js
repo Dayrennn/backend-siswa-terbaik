@@ -50,6 +50,7 @@ export const updateKehadiran = async ({ pertemuanId, kelasId, siswaId, statusKeh
         },
         data: {
             statusKehadiran,
+            tanggalKehadiran: new Date(),
         }
     });
 

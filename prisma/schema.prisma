@@ -176,7 +176,7 @@ model Kehadiran {
   tahunAjaran TahunAjaran? @relation(fields: [tahunAjaranId], references: [id])
   pertemuan Pertemuan @relation(fields: [pertemuanId], references: [id])
   kelas Kelas @relation(fields: [kelasId], references: [id])
-  @@unique([siswaId, tanggalKehadiran])
+  @@unique([siswaId, pertemuanId])
 }
 
 model Pertemuan {
