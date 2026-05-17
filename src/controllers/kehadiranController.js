@@ -27,16 +27,15 @@ export const createKehadiran = async (req, res) => {
 
 export const modifyKehadiran = async (req, res) => {
     try {
-        const { tahunAjaranId, kelasId, pertemuanId } = req.params;
+        const { kelasId, pertemuanId } = req.params;
         const { siswaId, statusKehadiran } = req.body;
         const result = await updateKehadiran({
-            tahunAjaranId,
             kelasId,
             pertemuanId,
             siswaId,
             statusKehadiran,
         });
-        res.status(200).json({ message: 'Data berhasil disimpan', data: result });
+        res.status(200).json({ message: 'Data berhasil di Update', data: result });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }

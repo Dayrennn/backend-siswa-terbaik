@@ -41,10 +41,9 @@ export const addKehadiran = async ({
     }
 };
 
-export const updateKehadiran = async ({ pertemuanId, kelasId, tahunAjaranId }) => {
-    return await prisma.kehadiran.updateMany({
+export const updateKehadiran = async ({ pertemuanId, kelasId, siswaId, statusKehadiran }) => {
+    const kehadirans =  await prisma.kehadiran.updateMany({
         where: {
-            tahunAjaranId,
             kelasId,
             pertemuanId,
             siswaId,
@@ -53,6 +52,8 @@ export const updateKehadiran = async ({ pertemuanId, kelasId, tahunAjaranId }) =
             statusKehadiran,
         }
     });
+
+    return kehadirans;
 };
 
 export const getAllKehadiran = async () => {
