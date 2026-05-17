@@ -98,7 +98,7 @@ export const updateSiswa = async (
                     },
                 },
                 update: { nilai: n.nilai },
-                create: { nilai: n.nilai, pelajaranId: n.pelajaranId },
+                create: { nilai: n.nilai, pelajaranId: n.pelajaranId, tahunAjaranId: existingSiswa.tahunAjaranId },
             })),
         };
     }
