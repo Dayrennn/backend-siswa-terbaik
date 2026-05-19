@@ -102,7 +102,7 @@ export const loginUser = async ({ email, password }) => {
 // update
 export const updateUser = async (
     id,
-    { username, email, telephone, password, role, pelajaranId },
+    { username, email, telephone, password, role, pelajaranId, kelasId },
 ) => {
     // cek user
     const existingUser = await prisma.user.findUnique({
@@ -159,6 +159,12 @@ export const updateUser = async (
             set: pelajaranId.map((id) => ({ id })),
         };
     }
+    const targetRole = role ?? existingUser.role;
+    if (targetRole === 'WaliKelas') {
+        if (kelasId) data.kelas = { connect: { id: kelasId } };
+    } else {
+        data.kelas = { disconnect: true };
+    }
 
     const updateUser = await prisma.user.update({
         where: { id },
@@ -170,6 +176,7 @@ export const updateUser = async (
             telephone: true,
             role: true,
             pelajaran: true,
+            kelas: true,
         },
     });
 
@@ -187,6 +194,7 @@ export const getAllUser = async () => {
             role: true,
             pelajaran: true,
             isVerified: true,
+            kelas: true,
         },
     });
 
@@ -205,6 +213,7 @@ export const getOneUser = async (id) => {
             role: true,
             pelajaran: true,
             isVerified: true,
+            kelas: true,
         },
     });
 
@@ -216,4 +225,36 @@ export const deleteUser = async (id) => {
         where: { id },
     });
     return users;
+};
+
+export const getWaliKelas = async () => {
+    const waliKelas = await prisma.user.findMany({
+        where: { role: 'WaliKelas' },
+        select: {
+            id: true,
+            username: true,
+            telephone: true,
+            kelas: true,
+            pelajaran: true,
+            isVerified: true,
+        },
+    });
+
+    return waliKelas;
+};
+
+export const getWaliKelasByKelas = async (kelasId) => {
+    const waliKelas = await prisma.user.findFirst({
+        where: { role: "WaliKelas", kelasId },
+        select: {
+            id: true,
+            username: true,
+            telephone: true,
+            kelas: true,
+            pelajaran: true,
+            isVerified: true,
+        },
+    });
+
+    return waliKelas;
 };

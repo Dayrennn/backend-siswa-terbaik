@@ -6,6 +6,8 @@ import {
     getAllUser,
     getOneUser,
     deleteUser,
+    getWaliKelas,
+    getWaliKelasByKelas,
 } from '../services/userServices.js';
 import { generateToken } from '../utils/jwt.js';
 
@@ -80,14 +82,14 @@ export const logout = (req, res) => {
 export const update = async (req, res) => {
     try {
         const { id } = req.params;
-        const { username, email, telephone, password, role, pelajaranId } = req.body;
+        const { username, email, telephone, password, role, pelajaranId, kelasId } = req.body;
         const updatedUser = await updateUser(id, {
             username,
             email,
             telephone,
             password,
             role,
-            telephone,
+            kelasId,
             pelajaranId,
         });
 
@@ -132,6 +134,28 @@ export const removeUser = async (req, res) => {
         const { id } = req.params;
         const user = await deleteUser(id);
         res.status(200).json({ message: 'Berhasil menghapus data', data: user });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+export const getAllWaliKelas = async (req, res) => {
+    try {
+        const waliKelas = await getWaliKelas();
+        res.status(200).json({ message: 'Berhasil mengambil data wali kelas', data: waliKelas });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+export const getWaliKelasByKelasId = async (req, res) => {
+    try {
+        const { kelasId } = req.params;
+        const waliKelas = await getWaliKelasByKelas(kelasId);
+        res.status(200).json({
+            message: 'Berhasil mengambil data wali kelas by kelas',
+            data: waliKelas,
+        });
     } catch (error) {
         res.status(400).json({ message: error.message });
     }

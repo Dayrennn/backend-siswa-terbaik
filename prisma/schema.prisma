@@ -19,9 +19,11 @@ model User {
     role        Role          @default(Guru)
     password    String
     isVerified  Boolean       @default(false)
+    kelasId String?
     otps        Otp[]
 
     pelajaran Pelajaran[]
+    kelas Kelas? @relation(fields: [kelasId], references: [id])
 }
 
 model Otp {
@@ -68,6 +70,7 @@ model Kelas {
   siswa Siswa[]
   pertemuan Pertemuan[]
   kehadiran Kehadiran[]
+  waliKelas User[]
 }
 
 model Nilai {

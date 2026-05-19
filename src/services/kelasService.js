@@ -70,6 +70,15 @@ export const getOneKelas = async (id) => {
             id: true,
             kodeKelas: true,
             namaKelas: true,
+            waliKelas: {
+                select: {
+                    email: true,
+                    username: true,
+                    telephone: true,
+                    kelas: true,
+                    pelajaran: true,
+                }
+            }
         },
     });
 
