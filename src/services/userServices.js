@@ -1,5 +1,6 @@
 import prisma from '../config/prisma.js';
 import { comparePassword, hashPassword } from '../utils/bcrypt.js';
+import { generateToken } from '../utils/jwt.js';
 import { sendOtp, verifyOtp } from './otpService.js';
 
 const validatePhone = (telephone) => {
@@ -96,7 +97,9 @@ export const loginUser = async ({ email, password }) => {
         throw new Error('Password salah');
     }
 
-    return user;
+    const token = generateToken({ id: user.id, email: user.email, role: user.role });
+
+    return { user, token };
 };
 
 // update

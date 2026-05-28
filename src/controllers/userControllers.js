@@ -43,10 +43,10 @@ export const verifyRegisterOtp = async (req, res) => {
 export const login = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const user = await loginUser({ email, password });
+        const { user, token } = await loginUser({ email, password });
 
         // generate token di controller HTTP Only
-        const token = generateToken({ id: user.id, role: user.role });
+        // const token = generateToken({ id: user.id, role: user.role });
 
         res.cookie('token', token, {
             httpOnly: true,
@@ -62,6 +62,7 @@ export const login = async (req, res) => {
                 username: user.username,
                 email: user.email,
                 role: user.role,
+                token,
             },
         });
     } catch (error) {
