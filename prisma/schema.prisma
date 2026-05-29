@@ -66,11 +66,13 @@ model Kelas {
   id String @id @default(uuid())
   kodeKelas String
   namaKelas String
+  tahunAjaranId String?
 
   siswa Siswa[]
   pertemuan Pertemuan[]
   kehadiran Kehadiran[]
   waliKelas User[]
+  tahunAjaran TahunAjaran? @relation(fields: [tahunAjaranId], references: [id])
 }
 
 model Nilai {
@@ -234,6 +236,7 @@ model TahunAjaran {
   nilai Nilai[]
   ranking Ranking[]
   pertemuan Pertemuan[]
+  kelas Kelas[]
 }
 
 enum StatusTahunAjaran {

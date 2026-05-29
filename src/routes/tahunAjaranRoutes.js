@@ -15,7 +15,7 @@ const router = express.Router();
 router.post('/create', authMiddleware, authorizeRole('Admin'), createTahunAjaran);
 
 router.put('/update/:id', authMiddleware, authorizeRole('Admin'), modidyTahunAjaran);
-router.get('/', authMiddleware, seeAllTahunAjaran);
+router.get('/', authMiddleware, authorizeRole('Admin'), seeAllTahunAjaran);
 router.get('/:id', authMiddleware, getTahunAjaranById);
 
 router.delete('/delete/:id', authMiddleware, authorizeRole('Admin'), removeTahunAjaran);

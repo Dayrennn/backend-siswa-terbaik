@@ -138,3 +138,81 @@ export const getKehadiranByPertemuan = async ({ tahunAjaranId, kelasId, pertemua
 
     return kehadirans;
 };
+
+// kehadiran.service.js
+export const getKehadiranByKelasAndTanggal = async ({ kelasId, tahunAjaranId, tanggal }) => {
+    const start = new Date(tanggal);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(tanggal);
+    end.setHours(23, 59, 59, 999);
+
+    // Ambil semua siswa di kelas + tahun ajaran ini
+    const siswaList = await prisma.siswa.findMany({
+        where: { kelasId, tahunAjaranId },
+        select: { id: true, namaSiswa: true, nis: true },
+        orderBy: { namaSiswa: 'asc' },
+    });
+
+    // Kehadiran yang sudah tersimpan di tanggal itu
+    const kehadiranTersimpan = await prisma.kehadiran.findMany({
+        where: {
+            kelasId,
+            tahunAjaranId,
+            tanggalKehadiran: { gte: start, lte: end },
+        },
+        select: { siswaId: true, statusKehadiran: true },
+    });
+
+    const statusMap = Object.fromEntries(
+        kehadiranTersimpan.map((k) => [k.siswaId, k.statusKehadiran])
+    );
+
+    // Kalau belum ada data → default Alpha (sesuai schema)
+    return siswaList.map((siswa) => ({
+        ...siswa,
+        statusKehadiran: statusMap[siswa.id] ?? 'Alpha',
+    }));
+};
+
+export const inputKehadiranKelas = async ({ kelasId, tahunAjaranId, tanggal, kehadiran }) => {
+    const tanggalDate = new Date(tanggal);
+    tanggalDate.setHours(0, 0, 0, 0);
+
+    // Auto-create pertemuan kalau belum ada
+    let pertemuan = await prisma.pertemuan.findFirst({
+        where: { kelasId, tanggal: tanggalDate },
+    });
+
+    if (!pertemuan) {
+        pertemuan = await prisma.pertemuan.create({
+            data: {
+                kelasId,
+                tahunAjaranId,
+                tanggal: tanggalDate,
+                namaPertemuan: `Kehadiran ${tanggalDate.toLocaleDateString('id-ID')}`,
+            },
+        });
+    }
+
+    // Upsert semua siswa sekaligus
+    const results = await Promise.all(
+        kehadiran.map(({ siswaId, statusKehadiran }) =>
+            prisma.kehadiran.upsert({
+                where: {
+                    siswaId_pertemuanId: { siswaId, pertemuanId: pertemuan.id },
+                },
+                update: { statusKehadiran },
+                create: {
+                    siswaId,
+                    kelasId,
+                    tahunAjaranId,
+                    pertemuanId: pertemuan.id,
+                    statusKehadiran,
+                    tanggalKehadiran: tanggalDate,
+                },
+            })
+        )
+    );
+
+    return results;
+};

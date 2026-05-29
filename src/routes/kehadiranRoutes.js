@@ -6,6 +6,8 @@ import {
     getKehadiranByFilter,
     getKehadiranById,
     getAbsenByPertemuan,
+    getKehadiranTab,
+    simpanKehadiran,
 } from '../controllers/kehadiranController.js';
 
 import { authMiddleware } from '../middleware/authMiddleware.js';
@@ -25,7 +27,9 @@ router.put(
     modifyKehadiran,
 );
 router.get('/', authMiddleware, seeAllKehadiran);
-router.get("/:tahunAjaranId/:kelasId/absen/:pertemuanId", authMiddleware, getAbsenByPertemuan)
+router.get('/kehadiran', authMiddleware, getKehadiranTab); // load tab
+router.post('/kehadiran', authMiddleware, simpanKehadiran); // simpan bulk
+router.get('/:tahunAjaranId/:kelasId/absen/:pertemuanId', authMiddleware, getAbsenByPertemuan);
 router.get('/rekap', authMiddleware, getKehadiranByFilter);
 router.get('/:id', authMiddleware, getKehadiranById);
 

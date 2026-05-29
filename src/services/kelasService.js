@@ -58,6 +58,7 @@ export const getKelas = async () => {
             id: true,
             kodeKelas: true,
             namaKelas: true,
+            tahunAjaranId: true,
         },
     });
     return kelas;

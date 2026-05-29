@@ -89,3 +89,28 @@ export const getAbsenByPertemuan = async (req, res) => {
         res.status(400).json({ message: error.message });
     }
 };
+
+// kehadiran.controller.js
+export const getKehadiranTab = async (req, res) => {
+    try {
+        const { kelasId, tahunAjaranId, tanggal } = req.query;
+        const data = await getKehadiranByKelasAndTanggal({
+            kelasId,
+            tahunAjaranId,
+            tanggal: tanggal ?? new Date().toISOString(), // default hari ini
+        });
+        res.json({ success: true, data });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+
+export const simpanKehadiran = async (req, res) => {
+    try {
+        const { kelasId, tahunAjaranId, tanggal, kehadiran } = req.body;
+        const data = await inputKehadiranKelas({ kelasId, tahunAjaranId, tanggal, kehadiran });
+        res.json({ success: true, data });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
