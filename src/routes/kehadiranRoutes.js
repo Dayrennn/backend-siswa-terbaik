@@ -27,8 +27,8 @@ router.put(
     modifyKehadiran,
 );
 router.get('/', authMiddleware, seeAllKehadiran);
-router.get('/kehadiran', authMiddleware, getKehadiranTab); // load tab
-router.post('/kehadiran', authMiddleware, simpanKehadiran); // simpan bulk
+router.get('/kelas', authMiddleware, getKehadiranTab); // load tab
+router.post('/simpan', authMiddleware, simpanKehadiran); // simpan bulk
 router.get('/:tahunAjaranId/:kelasId/absen/:pertemuanId', authMiddleware, getAbsenByPertemuan);
 router.get('/rekap', authMiddleware, getKehadiranByFilter);
 router.get('/:id', authMiddleware, getKehadiranById);

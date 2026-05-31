@@ -5,6 +5,8 @@ import {
     getKehadiranRekap,
     getOneKehadiran,
     getKehadiranByPertemuan,
+    getKehadiranByKelasAndTanggal,
+    inputKehadiranKelas,
 } from '../services/kehadiranService.js';
 
 export const createKehadiran = async (req, res) => {
@@ -67,7 +69,7 @@ export const getKehadiranByFilter = async (req, res) => {
 export const getKehadiranById = async (req, res) => {
     try {
         const { id } = req.params;
-        const kehadirans = await getOneKehadiran();
+        const kehadirans = await getOneKehadiran(id);
         res.status(200).json({
             message: 'Berhasil ambil data kehadiran by id',
             data: kehadirans,
