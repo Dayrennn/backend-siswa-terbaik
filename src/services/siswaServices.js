@@ -52,6 +52,16 @@ export const addSiswa = async ({ nis, namaSiswa, tanggalLahir, kelasId, tahunAja
                     statusKehadiran: 'Alpha',
                 })),
             },
+            nilaiAkademik: {
+                create: allPelajaran.flatMap((pelajaran) =>
+                    ['Tugas', 'UlanganHarian', 'UTS', 'UAS'].map((jenis) => ({
+                        pelajaran: pelajaran.id,
+                        tahunAjaranId,
+                        kelasId,
+                        jenis,
+                    })),
+                ),
+            },
         },
     });
 
@@ -59,10 +69,7 @@ export const addSiswa = async ({ nis, namaSiswa, tanggalLahir, kelasId, tahunAja
 };
 
 // update siswa
-export const updateSiswa = async (
-    id,
-    { nis, namaSiswa, tanggalLahir, kelasId, nilai, nilaiKriteria },
-) => {
+export const updateSiswa = async (id, { nis, namaSiswa, tanggalLahir, kelasId, nilai, nilaiKriteria }) => {
     const existingSiswa = await prisma.siswa.findUnique({
         where: { id },
     });
@@ -72,9 +79,7 @@ export const updateSiswa = async (
     if (nis || namaSiswa) {
         const existing = await prisma.siswa.findFirst({
             where: {
-                OR: [nis ? { nis } : undefined, namaSiswa ? { namaSiswa } : undefined].filter(
-                    Boolean,
-                ),
+                OR: [nis ? { nis } : undefined, namaSiswa ? { namaSiswa } : undefined].filter(Boolean),
                 NOT: { id },
             },
         });
