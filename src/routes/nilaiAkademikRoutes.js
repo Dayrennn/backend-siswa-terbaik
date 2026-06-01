@@ -1,6 +1,6 @@
 import express from 'express';
-import { simpanNilaiAkademik } from '../controllers/nilaiAkademikController';
-import { authMiddleware } from '../middleware/authMiddleware';
+import { simpanNilaiAkademik } from '../controllers/nilaiAkademikController.js';
+import { authMiddleware } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 

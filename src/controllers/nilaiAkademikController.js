@@ -1,4 +1,4 @@
-import { inputNilaiAkademik } from '../services/nilaiAkademikService';
+import { inputNilaiAkademik } from '../services/nilaiAkademikService.js';
 
 export const simpanNilaiAkademik = async (req, res) => {
     try {
