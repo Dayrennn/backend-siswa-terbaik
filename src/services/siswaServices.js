@@ -55,7 +55,7 @@ export const addSiswa = async ({ nis, namaSiswa, tanggalLahir, kelasId, tahunAja
             nilaiAkademik: {
                 create: allPelajaran.flatMap((pelajaran) =>
                     ['Tugas', 'UlanganHarian', 'UTS', 'UAS'].map((jenis) => ({
-                        pelajaran: pelajaran.id,
+                        pelajaranId: pelajaran.id,
                         tahunAjaranId,
                         kelasId,
                         jenis,
@@ -189,6 +189,9 @@ export const deleteSiswa = async (id) => {
         where: { siswaId: id },
     });
     await prisma.nilaiKriteria.deleteMany({
+        where: { siswaId: id },
+    });
+    await prisma.nilaiAkademik.deleteMany({
         where: { siswaId: id },
     });
     await prisma.kehadiran.deleteMany({

@@ -92,3 +92,15 @@ export const deleteKelas = async (id) => {
     });
     return existingKelas;
 };
+
+export const getKelasByTahunAjaran = async (tahunAjaranId) => {
+    const kelas = await prisma.kelas.findMany({
+        where: { tahunAjaranId },
+        select: {
+            id: true,
+            kodeKelas: true,
+            namaKelas: true,
+        },
+    });
+    return kelas;
+}

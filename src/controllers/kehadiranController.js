@@ -45,7 +45,8 @@ export const modifyKehadiran = async (req, res) => {
 
 export const seeAllKehadiran = async (req, res) => {
     try {
-        const kehadirans = await getAllKehadiran();
+        const { tahunAjaranId, kelasId, tanggal, pertemuanId } = req.query;
+        const kehadirans = await getAllKehadiran({ tahunAjaranId, kelasId, tanggal, pertemuanId });
         res.status(200).json({ message: 'Berhasil ambil data kehadiran', data: kehadirans });
     } catch (error) {
         res.status(400).json({ message: error.message });

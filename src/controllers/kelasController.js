@@ -1,4 +1,4 @@
-import { addKelas, updateKelas, getKelas, getOneKelas, deleteKelas } from '../services/kelasService.js';
+import { addKelas, updateKelas, getKelas, getOneKelas, deleteKelas, getKelasByTahunAjaran } from '../services/kelasService.js';
 
 export const createKelas = async (req, res) => {
     try {
@@ -57,3 +57,13 @@ export const removeKelas = async (req, res) => {
         res.status(400).json({ message: error.message });
     }
 };
+
+export const getKelasTahunAjaran = async (req, res) => {
+    try {
+        const { tahunAjaranId } = req.query;
+        const kelas = await getKelasByTahunAjaran(tahunAjaranId);
+        res.status(200).json({ message: 'Berhasil Mengambil Data Kelas By Tahun Ajaran', data: kelas });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+}

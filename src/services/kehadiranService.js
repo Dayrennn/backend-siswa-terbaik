@@ -42,7 +42,7 @@ export const addKehadiran = async ({
 };
 
 export const updateKehadiran = async ({ pertemuanId, kelasId, siswaId, statusKehadiran }) => {
-    const kehadirans =  await prisma.kehadiran.updateMany({
+    const kehadirans = await prisma.kehadiran.updateMany({
         where: {
             kelasId,
             pertemuanId,
@@ -51,32 +51,65 @@ export const updateKehadiran = async ({ pertemuanId, kelasId, siswaId, statusKeh
         data: {
             statusKehadiran,
             tanggalKehadiran: new Date(),
-        }
+        },
     });
 
     return kehadirans;
 };
 
-export const getAllKehadiran = async () => {
-    const kehadirans = await prisma.kehadiran.findMany({
-        select: {
-            id: true,
-            tahunAjaran: true,
-            statusKehadiran: true,
-            tanggalKehadiran: true,
-            siswa: {
-                select: {
-                    name: true,
-                    kelas: true,
+export const getAllKehadiran = async ({ tahunAjaranId, kelasId, tanggal, pertemuanId } = {}) => {
+    const where = {};
+
+    if (tahunAjaranId) where.tahunAjaranId = tahunAjaranId;
+    if (kelasId) where.kelasId = kelasId;
+    if (pertemuanId) where.pertemuanId = pertemuanId;
+    if (tanggal) {
+        const start = new Date(`${tanggal}T00:00:00.000+07:00`);
+        const end = new Date(`${tanggal}T23:59:59.999+07:00`);
+        where.tanggalKehadiran = { gte: start, lte: end };
+    }
+
+    const [kehadirans, rekap] = await Promise.all([
+        prisma.kehadiran.findMany({
+            where,
+            select: {
+                id: true,
+                tahunAjaran: true,
+                statusKehadiran: true,
+                tanggalKehadiran: true,
+                siswa: {
+                    select: {
+                        namaSiswa: true,
+                        kelas: true,
+                    },
                 },
             },
-        },
-        orderBy: {
-            tanggalKehadiran: 'desc',
-        },
+            orderBy: { tanggalKehadiran: 'desc' },
+        }),
+
+        prisma.kehadiran.groupBy({
+            by: ['statusKehadiran'],
+            where,
+            _count: { statusKehadiran: true },
+        }),
+    ]);
+
+    const summary = {
+        total: kehadirans.length,
+        hadir: 0,
+        izin: 0,
+        sakit: 0,
+        alpha: 0,
+    };
+
+    rekap.forEach((item) => {
+        const status = item.statusKehadiran.toLowerCase();
+        if (summary[status] !== undefined) {
+            summary[status] = item._count.statusKehadiran;
+        }
     });
 
-    return kehadirans;
+    return { data: kehadirans, summary };
 };
 
 export const getKehadiranRekap = async ({ siswaId, tahunAjaran, kelas }) => {
@@ -139,14 +172,12 @@ export const getKehadiranByPertemuan = async ({ tahunAjaranId, kelasId, pertemua
     return kehadirans;
 };
 
-// kehadiran.service.js
 export const getKehadiranByKelasAndTanggal = async ({ kelasId, tahunAjaranId, tanggal }) => {
     const start = new Date(tanggal);
     start.setHours(0, 0, 0, 0);
     const end = new Date(tanggal);
     end.setHours(23, 59, 59, 999);
 
-    // Ambil semua siswa di kelas + tahun ajaran ini
     const siswaList = await prisma.siswa.findMany({
         where: { kelasId, tahunAjaranId },
         select: { id: true, namaSiswa: true, nis: true },
@@ -163,11 +194,8 @@ export const getKehadiranByKelasAndTanggal = async ({ kelasId, tahunAjaranId, ta
         select: { siswaId: true, statusKehadiran: true },
     });
 
-    const statusMap = Object.fromEntries(
-        kehadiranTersimpan.map((k) => [k.siswaId, k.statusKehadiran])
-    );
+    const statusMap = Object.fromEntries(kehadiranTersimpan.map((k) => [k.siswaId, k.statusKehadiran]));
 
-    // Kalau belum ada data → default Alpha (sesuai schema)
     return siswaList.map((siswa) => ({
         ...siswa,
         statusKehadiran: statusMap[siswa.id] ?? 'Alpha',
@@ -175,10 +203,12 @@ export const getKehadiranByKelasAndTanggal = async ({ kelasId, tahunAjaranId, ta
 };
 
 export const inputKehadiranKelas = async ({ kelasId, tahunAjaranId, tanggal, kehadiran }) => {
-    const tanggalDate = new Date(tanggal);
-    tanggalDate.setHours(0, 0, 0, 0);
+    const [year, month, day] = tanggal.split('-').map(Number);
+    const tanggalDate = new Date(year, month - 1, day, 0, 0, 0, 0);
+    console.log('TZ:', process.env.TZ);
+    console.log('tanggal input:', tanggal);
+    console.log('tanggalDate:', new Date(tanggal).toString());
 
-    // Auto-create pertemuan kalau belum ada
     let pertemuan = await prisma.pertemuan.findFirst({
         where: { kelasId, tanggal: tanggalDate },
     });
@@ -194,14 +224,13 @@ export const inputKehadiranKelas = async ({ kelasId, tahunAjaranId, tanggal, keh
         });
     }
 
-    // Upsert semua siswa sekaligus
     const results = await Promise.all(
         kehadiran.map(({ siswaId, statusKehadiran }) =>
             prisma.kehadiran.upsert({
                 where: {
                     siswaId_pertemuanId: { siswaId, pertemuanId: pertemuan.id },
                 },
-                update: { statusKehadiran },
+                update: { statusKehadiran, tanggalKehadiran: tanggalDate },
                 create: {
                     siswaId,
                     kelasId,
@@ -210,8 +239,8 @@ export const inputKehadiranKelas = async ({ kelasId, tahunAjaranId, tanggal, keh
                     statusKehadiran,
                     tanggalKehadiran: tanggalDate,
                 },
-            })
-        )
+            }),
+        ),
     );
 
     return results;
