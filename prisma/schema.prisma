@@ -57,7 +57,7 @@ model Siswa {
   eskul SiswaEskul[]
   kehadiran Kehadiran[]
   ranking Ranking[]
-  nilaiAkademi NilaiAkademik[]
+  nilaiAkademik NilaiAkademik[]
 
   tahunAjaran TahunAjaran? @relation(fields: [tahunAjaranId], references: [id])
   kelas Kelas? @relation(fields: [kelasId], references: [id])
@@ -73,7 +73,7 @@ model Kelas {
   pertemuan Pertemuan[]
   kehadiran Kehadiran[]
   waliKelas User[]
-  nilaiAkademi NilaiAkademik[]
+  nilaiAkademik NilaiAkademik[]
   tahunAjaran TahunAjaran? @relation(fields: [tahunAjaranId], references: [id])
 }
 
@@ -122,7 +122,7 @@ model Pelajaran {
   nilai Nilai[]
   user User[]
   siswa Siswa[]
-  nilaiAkademi NilaiAkademik[]
+  nilaiAkademik NilaiAkademik[]
 }
 
 model Hafalan {
@@ -240,7 +240,7 @@ model TahunAjaran {
   ranking Ranking[]
   pertemuan Pertemuan[]
   kelas Kelas[]
-  nilaiAkademi NilaiAkademik[]
+  nilaiAkademik NilaiAkademik[]
 }
 
 enum StatusTahunAjaran {

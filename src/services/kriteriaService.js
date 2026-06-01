@@ -26,6 +26,29 @@ export const addKriteria = async ({ namaKriteria, bobot, jenis }) => {
         },
     });
 
+    const tahunAjaranAktif = await prisma.tahunAjaran.findFirst({
+        where: { status: 'Aktif' },
+    });
+
+    if (tahunAjaranAktif) {
+        const allSiswa = await prisma.siswa.findMany({
+            where: {
+                tahunAjaranId: tahunAjaranAktif.id,
+            },
+            select: { id: true },
+        });
+        if (allSiswa.length > 0) {
+            await prisma.nilaiKriteria.createMany({
+                data: allSiswa.map((siswa) => ({
+                    siswaId: siswa.id,
+                    kriteriaId: newKriteria.id,
+                    nilai: 0,
+                })),
+                skipDuplicates: true,
+            });
+        }
+    }
+
     return newKriteria;
 };
 

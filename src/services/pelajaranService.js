@@ -16,6 +16,32 @@ export const addPelajaran = async ({ namaPelajaran, kodePelajaran }) => {
         },
     });
 
+    const tahunAjaranAktif = await prisma.tahunAjaran.findFirst({
+        where: { status: 'Aktif' },
+    });
+
+    if (tahunAjaranAktif) {
+        const allSiswa = await prisma.siswa.findMany({
+            where: {
+                tahunAjaranId: tahunAjaranAktif.id,
+            },
+            select: {
+                id: true,
+            },
+        });
+        if (allSiswa.length > 0) {
+            await prisma.nilai.createMany({
+                data: allSiswa.map((siswa) => ({
+                    siswaId: siswa.id,
+                    pelajaranId: newPelajaran.id,
+                    tahunAjaranId: tahunAjaranAktif.id,
+                    nilai: 0,
+                })),
+                skipDuplicates: true,
+            });
+        }
+    }
+
     return newPelajaran;
 };
 
@@ -29,10 +55,7 @@ export const updatePelajaran = async (id, { namaPelajaran, kodePelajaran }) => {
     if (namaPelajaran || kodePelajaran) {
         const existing = await prisma.pelajaran.findFirst({
             where: {
-                OR: [
-                    namaPelajaran ? { namaPelajaran } : undefined,
-                    kodePelajaran ? { kodePelajaran } : undefined,
-                ],
+                OR: [namaPelajaran ? { namaPelajaran } : undefined, kodePelajaran ? { kodePelajaran } : undefined],
                 NOT: { id },
             },
         });
