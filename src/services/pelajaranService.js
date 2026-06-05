@@ -85,6 +85,12 @@ export const getAllPelajaran = async () => {
             id: true,
             namaPelajaran: true,
             kodePelajaran: true,
+            user: {
+                select: {
+                    id: true,
+                    username: true,
+                },
+            },
         },
     });
 
@@ -98,6 +104,12 @@ export const getOnePelajaran = async (id) => {
             id: true,
             namaPelajaran: true,
             kodePelajaran: true,
+            user: {
+                select: {
+                    id: true,
+                    username: true,
+                },
+            },
         },
     });
 

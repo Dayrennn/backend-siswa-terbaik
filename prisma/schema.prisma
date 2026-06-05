@@ -74,6 +74,7 @@ model Kelas {
   kehadiran Kehadiran[]
   waliKelas User[]
   nilaiAkademik NilaiAkademik[]
+  jadwal Jadwal[]
   tahunAjaran TahunAjaran? @relation(fields: [tahunAjaranId], references: [id])
 }
 
@@ -123,6 +124,7 @@ model Pelajaran {
   user User[]
   siswa Siswa[]
   nilaiAkademik NilaiAkademik[]
+  jadwal Jadwal[]
 }
 
 model Hafalan {
@@ -270,4 +272,26 @@ enum JenisNilai {
   UlanganHarian
   UTS
   UAS
+}
+
+model Jadwal {
+  id String @id @default(uuid())
+  pelajaranId String
+  kelasId String
+  hari Hari
+  jamMulai Int
+  jamSelesai Int
+
+  pelajaran Pelajaran @relation(fields: [pelajaranId], references: [id])
+  kelas Kelas @relation(fields: [kelasId], references: [id])
+}
+
+enum Hari {
+  Senin
+  Selasa
+  Rabu
+  Kamis
+  Jumat
+  Sabtu
+  Minggu
 }
