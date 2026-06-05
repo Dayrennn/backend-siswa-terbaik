@@ -205,9 +205,6 @@ export const getKehadiranByKelasAndTanggal = async ({ kelasId, tahunAjaranId, ta
 export const inputKehadiranKelas = async ({ kelasId, tahunAjaranId, tanggal, kehadiran }) => {
     const [year, month, day] = tanggal.split('-').map(Number);
     const tanggalDate = new Date(year, month - 1, day, 0, 0, 0, 0);
-    console.log('TZ:', process.env.TZ);
-    console.log('tanggal input:', tanggal);
-    console.log('tanggalDate:', new Date(tanggal).toString());
 
     let pertemuan = await prisma.pertemuan.findFirst({
         where: { kelasId, tanggal: tanggalDate },

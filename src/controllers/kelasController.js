@@ -27,13 +27,11 @@ export const modifyKelas = async (req, res) => {
 export const getAllKelas = async (req, res) => {
     try {
         const kelas = await getKelas();
-        console.log('kelas:', kelas);
         res.status(200).json({
             message: 'Berhasl Mengambil Data Kelas',
             data: kelas,
         });
     } catch (error) {
-        console.log('error', error);
         res.status(400).json({ message: error.message });
     }
 };
