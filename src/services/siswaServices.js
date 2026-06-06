@@ -157,6 +157,12 @@ export const getAllSiswa = async () => {
                     kriteria: true,
                 },
             },
+            kehadiran: {
+                select: {
+                    statusKehadiran: true,
+                    tanggalKehadiran: true,
+                },
+            },
         },
     });
 
@@ -175,6 +181,12 @@ export const getOneSiswa = async (id) => {
             nilaiKriteria: {
                 include: {
                     kriteria: true,
+                },
+            },
+            kehadiran: {
+                select: {
+                    statusKehadiran: true,
+                    tanggalKehadiran: true,
                 },
             },
         },
