@@ -242,3 +242,72 @@ export const inputKehadiranKelas = async ({ kelasId, tahunAjaranId, tanggal, keh
 
     return results;
 };
+
+export const inputKehadiranByPelajaranAndKelas = async ({
+    kelasId,
+    tahunAjaranId,
+    tanggal,
+    siswaId,
+    statusKehadiran,
+    pelajaranId,
+}) => {
+    const [year, month, day] = tanggal.split('-').map(Number);
+    const tanggalDate = new Date(year, month - 1, day, 0, 0, 0, 0);
+
+    let pertemuan = await prisma.pertemuan.findFirst({
+        where: { kelasId, tanggal: tanggalDate },
+    });
+
+    if (!pertemuan) {
+        pertemuan = await prisma.pertemuan.create({
+            data: {
+                kelasId,
+                tahunAjaranId,
+                tanggal: tanggalDate,
+                namaPertemuan: `Kehadiran ${tanggalDate.toLocaleDateString('id-ID')}`,
+            },
+        });
+    }
+
+    const result = await prisma.kehadiran.upsert({
+        where: {
+            siswaId_pertemuanId: { siswaId, pertemuanId: pertemuan.id },
+        },
+        update: { statusKehadiran, tanggalKehadiran: tanggalDate },
+        create: {
+            siswaId,
+            kelasId,
+            tahunAjaranId,
+            pertemuanId: pertemuan.id,
+            statusKehadiran,
+            tanggalKehadiran: tanggalDate,
+            pelajaranId,
+        },
+    });
+
+    return result;
+};
+
+export const getKehadiranByKelasAndPelajaran = async ({ kelasId, pelajaranId, tahunAjaranId }) => {
+    const kehadirans = await prisma.kehadiran.findMany({
+        where: {
+            kelasId,
+            pelajaranId,
+            tahunAjaranId,
+        },
+        select: {
+            id: true,
+            siswaId: true,
+            kelasId: true,
+            statusKehadiran: true,
+            tanggalKehadiran: true,
+            siswa: {
+                select: {
+                    id: true,
+                    namaSiswa: true,
+                    kelasId: true,
+                },
+            },
+        },
+    });
+};

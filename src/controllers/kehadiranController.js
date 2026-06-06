@@ -7,6 +7,7 @@ import {
     getKehadiranByPertemuan,
     getKehadiranByKelasAndTanggal,
     inputKehadiranKelas,
+    inputKehadiranByPelajaranAndKelas,
 } from '../services/kehadiranService.js';
 
 export const createKehadiran = async (req, res) => {
@@ -104,7 +105,7 @@ export const getKehadiranTab = async (req, res) => {
         });
         res.json({ success: true, data });
     } catch (error) {
-        res.status(400).json({ success: false, message: error.message });
+        res.status(400).json({ message: error.message });
     }
 };
 
@@ -112,8 +113,42 @@ export const simpanKehadiran = async (req, res) => {
     try {
         const { kelasId, tahunAjaranId, tanggal, kehadiran } = req.body;
         const data = await inputKehadiranKelas({ kelasId, tahunAjaranId, tanggal, kehadiran });
-        res.json({ success: true, data });
+        res.json(200).json({
+            message: 'Berhasil Simpan Kehadiran',
+            data,
+        });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+export const simpanKehadiranByPelajaranAndKelas = async (req, res) => {
+    try {
+        const { pelajaranId } = req.params;
+        const { tahunAjaranId, tanggal, siswaId, statusKehadiran, kelasId } = req.body;
+        const data = await inputKehadiranByPelajaranAndKelas({
+            kelasId,
+            tahunAjaranId,
+            tanggal,
+            siswaId,
+            statusKehadiran,
+            pelajaranId,
+        });
+        res.status(200).json({
+            message: 'Kehadiran By Kelas Berhasil Disimpan',
+            data,
+        });
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
     }
+};
+
+export const seeKehadiranByKelasAndPelajaran = async (req, res) => {
+    try {
+        const { kelasId } = req.params;
+        const kehadirans = await getKehadiranByKelasdanPelajaran({ kelasId, pelajaranId, tahunAjaranId });
+        res.json({
+            message: 'Berhasil Mengambil Data Kehadiran By Kelas dan Pelajaran',
+        });
+    } catch (error) {}
 };

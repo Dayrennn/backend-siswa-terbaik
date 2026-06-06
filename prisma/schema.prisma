@@ -125,6 +125,7 @@ model Pelajaran {
   siswa Siswa[]
   nilaiAkademik NilaiAkademik[]
   jadwal Jadwal[]
+  kehadiran Kehadiran[]
 }
 
 model Hafalan {
@@ -177,11 +178,13 @@ model Kehadiran {
   id String @id @default(uuid())
   tahunAjaranId String?
   pertemuanId String
+  pelajaranId String?
   siswaId String
   kelasId String
   statusKehadiran StatusKehadiran @default(Alpha)
   tanggalKehadiran DateTime @default(now())
 
+  pelajaran Pelajaran? @relation(fields: [pelajaranId], references: [id])
   siswa Siswa @relation(fields: [siswaId], references: [id])
   tahunAjaran TahunAjaran? @relation(fields: [tahunAjaranId], references: [id])
   pertemuan Pertemuan @relation(fields: [pertemuanId], references: [id])
