@@ -122,7 +122,7 @@ export const getKehadiranRekap = async ({ siswaId, tahunAjaran, kelas }) => {
         include: {
             siswa: {
                 select: {
-                    name: true,
+                    namaSiswa: true,
                     kelas: true,
                 },
             },
@@ -145,7 +145,7 @@ export const getOneKehadiran = async (id) => {
             tanggalKehadiran: true,
             siswa: {
                 select: {
-                    name: true,
+                    namaSiswa: true,
                     kelas: true,
                 },
             },
@@ -310,4 +310,26 @@ export const getKehadiranByKelasAndPelajaran = async ({ kelasId, pelajaranId, ta
             },
         },
     });
+};
+
+export const getKehadiranByJadwal = async ({ jadwalId }) => {
+    const jadwal = await prisma.jadwal.findUnique({
+        where: { id: jadwalId },
+        select: { kelasId: true, pelajaranId: true },
+    });
+
+    if (!jadwal) throw new Error('Jadwal tidak ditemukan');
+
+    const siswa = await prisma.siswa.findMany({
+        where: {
+            kelasId: jadwal.kelasId,
+        },
+        select: {
+            id: true,
+            namaSiswa: true,
+            nis: true,
+        },
+    });
+
+    return { jadwal, siswa };
 };

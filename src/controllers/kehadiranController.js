@@ -8,6 +8,7 @@ import {
     getKehadiranByKelasAndTanggal,
     inputKehadiranKelas,
     inputKehadiranByPelajaranAndKelas,
+    getKehadiranByJadwal,
 } from '../services/kehadiranService.js';
 
 export const createKehadiran = async (req, res) => {
@@ -143,12 +144,15 @@ export const simpanKehadiranByPelajaranAndKelas = async (req, res) => {
     }
 };
 
-export const seeKehadiranByKelasAndPelajaran = async (req, res) => {
+export const seeKehadiranByJadwal = async (req, res) => {
     try {
-        const { kelasId } = req.params;
-        const kehadirans = await getKehadiranByKelasdanPelajaran({ kelasId, pelajaranId, tahunAjaranId });
-        res.json({
-            message: 'Berhasil Mengambil Data Kehadiran By Kelas dan Pelajaran',
+        const { jadwalId } = req.params;
+        const data = await getKehadiranByJadwal({ jadwalId });
+        res.status(200).json({
+            message: 'Berhasil Mengambil Data Siswa By Jadwal',
+            data,
         });
-    } catch (error) {}
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 };

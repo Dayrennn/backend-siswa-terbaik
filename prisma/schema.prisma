@@ -181,6 +181,7 @@ model Kehadiran {
   pelajaranId String?
   siswaId String
   kelasId String
+  jadwalId String?
   statusKehadiran StatusKehadiran @default(Alpha)
   tanggalKehadiran DateTime @default(now())
 
@@ -189,6 +190,7 @@ model Kehadiran {
   tahunAjaran TahunAjaran? @relation(fields: [tahunAjaranId], references: [id])
   pertemuan Pertemuan @relation(fields: [pertemuanId], references: [id])
   kelas Kelas @relation(fields: [kelasId], references: [id])
+  jadwal Jadwal? @relation(fields: [jadwalId], references: [id])
   @@unique([siswaId, pertemuanId])
 }
 
@@ -287,6 +289,7 @@ model Jadwal {
 
   pelajaran Pelajaran @relation(fields: [pelajaranId], references: [id])
   kelas Kelas @relation(fields: [kelasId], references: [id])
+  kehadiran Kehadiran[]
 }
 
 enum Hari {
