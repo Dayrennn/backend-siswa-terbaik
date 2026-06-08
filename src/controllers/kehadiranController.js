@@ -113,7 +113,7 @@ export const simpanKehadiran = async (req, res) => {
     try {
         const { kelasId, tahunAjaranId, tanggal, kehadiran } = req.body;
         const data = await inputKehadiranKelas({ kelasId, tahunAjaranId, tanggal, kehadiran });
-        res.json(200).json({
+        res.status(200).json({
             message: 'Berhasil Simpan Kehadiran',
             data,
         });
