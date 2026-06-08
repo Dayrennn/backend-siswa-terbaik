@@ -170,18 +170,14 @@ export const getAllSiswa = async () => {
 };
 
 export const getOneSiswa = async (id) => {
-    const siswas = await prisma.siswa.findUnique({
+    const siswa = await prisma.siswa.findUnique({
         where: { id },
         include: {
             nilai: {
-                include: {
-                    pelajaran: true,
-                },
+                include: { pelajaran: true },
             },
             nilaiKriteria: {
-                include: {
-                    kriteria: true,
-                },
+                include: { kriteria: true },
             },
             kehadiran: {
                 select: {
@@ -192,7 +188,32 @@ export const getOneSiswa = async (id) => {
         },
     });
 
-    return siswas;
+    if (!siswa) return null;
+
+    const totalNilai = siswa.nilai.reduce((sum, n) => sum + n.nilai, 0);
+    const rataRataNilai = siswa.nilai.length > 0 ? totalNilai / siswa.nilai.length : 0;
+
+    const totalBobot = siswa.nilaiKriteria.reduce((sum, nk) => sum + nk.kriteria.bobot, 0);
+    const totalNilaiKriteriaBerbobot = siswa.nilaiKriteria.reduce((sum, nk) => sum + nk.nilai * nk.kriteria.bobot, 0);
+    const rataRataNilaiKriteria = totalBobot > 0 ? totalNilaiKriteriaBerbobot / totalBobot : 0;
+
+    const totalKehadiran = siswa.kehadiran.length;
+    const rekapKehadiran = siswa.kehadiran.reduce((acc, k) => {
+        acc[k.statusKehadiran] = (acc[k.statusKehadiran] || 0) + 1;
+        return acc;
+    }, {});
+    const persentaseHadir = totalKehadiran > 0 ? ((rekapKehadiran['Hadir'] || 0) / totalKehadiran) * 100 : 0;
+
+    return {
+        ...siswa,
+        ringkasan: {
+            rataRataNilai: parseFloat(rataRataNilai.toFixed(2)),
+            rataRataNilaiKriteria: parseFloat(rataRataNilaiKriteria.toFixed(2)),
+            totalKehadiran,
+            rekapKehadiran,
+            persentaseHadir: parseFloat(persentaseHadir.toFixed(2)),
+        },
+    };
 };
 
 // delete siswa
