@@ -10,6 +10,7 @@ import {
     simpanKehadiran,
     simpanKehadiranByPelajaranAndKelas,
     seeKehadiranByJadwal,
+    simpanKehadiranByjadwal,
 } from '../controllers/kehadiranController.js';
 
 import { authMiddleware } from '../middleware/authMiddleware.js';
@@ -31,6 +32,7 @@ router.put(
 router.get('/', authMiddleware, seeAllKehadiran);
 router.get('/kelas', authMiddleware, getKehadiranTab); // load tab
 router.post('/simpan', authMiddleware, simpanKehadiran); // simpan bulk
+router.post('/simpan/:jadwalId', authMiddleware, simpanKehadiranByjadwal)
 router.post('/:pelajaranId', authMiddleware, simpanKehadiranByPelajaranAndKelas);
 router.get('/:tahunAjaranId/:kelasId/absen/:pertemuanId', authMiddleware, getAbsenByPertemuan);
 router.get('/rekap', authMiddleware, getKehadiranByFilter);

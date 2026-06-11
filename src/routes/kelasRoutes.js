@@ -13,7 +13,7 @@ import {
 
 const router = express.Router();
 
-router.post('/create', authMiddleware, authorizeRole('Admin'), createKelas);
+router.post('/create/:tahunAjaranId', authMiddleware, authorizeRole('Admin'), createKelas);
 
 router.put('/update/:id', authMiddleware, authorizeRole('Admin'), modifyKelas);
 

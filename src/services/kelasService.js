@@ -1,16 +1,20 @@
 import prisma from '../config/prisma.js';
 
-export const addKelas = async ({ kodeKelas, namaKelas }) => {
+export const addKelas = async ({ kodeKelas, namaKelas, tahunAjaranId }) => {
     if (!kodeKelas?.trim()) {
         throw new Error('Nama kelas wajib di isi');
     }
     if (!namaKelas?.trim()) {
         throw new Error('Nama kelas wajib di isi');
     }
+    if (!tahunAjaranId) {
+        throw new Error('Tahun Ajaran Wajib Di Isi');
+    }
 
     const existingKelas = await prisma.kelas.findFirst({
         where: {
             kodeKelas,
+            tahunAjaranId,
         },
     });
 
@@ -20,6 +24,7 @@ export const addKelas = async ({ kodeKelas, namaKelas }) => {
         data: {
             kodeKelas: kodeKelas,
             namaKelas: namaKelas,
+            tahunAjaranId,
         },
     });
 
@@ -78,8 +83,8 @@ export const getOneKelas = async (id) => {
                     telephone: true,
                     kelas: true,
                     pelajaran: true,
-                }
-            }
+                },
+            },
         },
     });
 
@@ -87,10 +92,26 @@ export const getOneKelas = async (id) => {
 };
 
 export const deleteKelas = async (id) => {
-    const existingKelas = await prisma.kelas.delete({
-        where: { id },
+    await prisma.nilaiAkademik.deleteMany({
+        where: { kelasId: id }
     });
-    return existingKelas;
+    await prisma.kehadiran.deleteMany({
+        where: { kelasId: id }
+    });
+    await prisma.pertemuan.deleteMany({
+        where: { kelasId: id }
+    });
+    await prisma.jadwal.deleteMany({
+        where: { kelasId: id }
+    });
+    await prisma.siswa.updateMany({
+        where: { kelasId: id },
+        data: { kelasId: null }
+    });
+    const removeKelas = await prisma.kelas.delete({
+        where: { id }
+    });
+    return removeKelas
 };
 
 export const getKelasByTahunAjaran = async (tahunAjaranId) => {
@@ -103,4 +124,4 @@ export const getKelasByTahunAjaran = async (tahunAjaranId) => {
         },
     });
     return kelas;
-}
+};

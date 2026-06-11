@@ -2,8 +2,9 @@ import { addKelas, updateKelas, getKelas, getOneKelas, deleteKelas, getKelasByTa
 
 export const createKelas = async (req, res) => {
     try {
+        const { tahunAjaranId } = req.params;
         const { kodeKelas, namaKelas } = req.body;
-        const addedKelas = await addKelas({ kodeKelas, namaKelas });
+        const addedKelas = await addKelas({ kodeKelas, namaKelas, tahunAjaranId });
         res.status(200).json({ message: 'Data kelas berhasil ditambah', data: addedKelas });
     } catch (error) {
         res.status(400).json({ message: error.message });
