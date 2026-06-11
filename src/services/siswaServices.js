@@ -148,50 +148,6 @@ export const getAllSiswa = async () => {
             tahunAjaran: true,
             kelas: true,
             nilai: {
-                include: {
-                    pelajaran: true,
-                },
-            },
-            nilaiKriteria: {
-                include: {
-                    kriteria: true,
-                },
-            },
-            kehadiran: {
-                select: {
-                    statusKehadiran: true,
-                    tanggalKehadiran: true,
-                },
-            },
-            poinPlus: {
-                select: {
-                    id: true,
-                    siswaId: true,
-                    deskripsi: true,
-                    poin: true,
-                    tanggal: true,
-                },
-            },
-            poinMinus: {
-                select: {
-                    id: true,
-                    siswaId: true,
-                    deskripsi: true,
-                    poin: true,
-                    tanggal: true,
-                },
-            },
-        },
-    });
-
-    return siswas;
-};
-
-export const getOneSiswa = async (id) => {
-    const siswa = await prisma.siswa.findUnique({
-        where: { id },
-        include: {
-            nilai: {
                 include: { pelajaran: true },
             },
             nilaiKriteria: {
@@ -204,25 +160,70 @@ export const getOneSiswa = async (id) => {
                 },
             },
             poinPlus: {
-                select: {
-                    id: true,
-                    siswaId: true,
-                    deskripsi: true,
-                    poin: true,
-                    tanggal: true,
-                },
+                select: { id: true, siswaId: true, deskripsi: true, poin: true, tanggal: true },
+                orderBy: { tanggal: 'desc' },
+                take: 5,
             },
             poinMinus: {
-                select: {
-                    id: true,
-                    siswaId: true,
-                    deskripsi: true,
-                    poin: true,
-                    tanggal: true,
-                },
+                select: { id: true, siswaId: true, deskripsi: true, poin: true, tanggal: true },
+                orderBy: { tanggal: 'desc' },
+                take: 5,
+            },
+            _count: {
+                select: { poinPlus: true, poinMinus: true },
             },
         },
     });
+    const siswaIds = siswas.map((s) => s.id);
+
+    const [allPlus, allMinus] = await Promise.all([
+        prisma.poinPlus.groupBy({
+            by: ['siswaId'],
+            where: { siswaId: { in: siswaIds } },
+            _sum: { poin: true },
+        }),
+        prisma.poinMinus.groupBy({
+            by: ['siswaId'],
+            where: { siswaId: { in: siswaIds } },
+            _sum: { poin: true },
+        }),
+    ]);
+
+    const plusMap = Object.fromEntries(allPlus.map((p) => [p.siswaId, p._sum.poin ?? 0]));
+    const minusMap = Object.fromEntries(allMinus.map((p) => [p.siswaId, p._sum.poin ?? 0]));
+
+    return siswas.map((s) => ({
+        ...s,
+        totalPoinPlus: plusMap[s.id] ?? 0,
+        totalPoinMinus: minusMap[s.id] ?? 0,
+    }));
+};
+
+export const getOneSiswa = async (id) => {
+    const [siswa, allPoinPlus, allPoinMinus] = await Promise.all([
+        prisma.siswa.findUnique({
+            where: { id },
+            include: {
+                kelas: true,
+                nilai: { include: { pelajaran: true } },
+                nilaiKriteria: { include: { kriteria: true } },
+                kehadiran: {
+                    select: { statusKehadiran: true, tanggalKehadiran: true },
+                },
+                poinPlus: {
+                    select: { id: true, siswaId: true, deskripsi: true, poin: true, tanggal: true },
+                },
+                poinMinus: {
+                    select: { id: true, siswaId: true, deskripsi: true, poin: true, tanggal: true },
+                },
+                _count: {
+                    select: { poinPlus: true, poinMinus: true },
+                },
+            },
+        }),
+        prisma.poinPlus.aggregate({ where: { siswaId: id }, _sum: { poin: true } }),
+        prisma.poinMinus.aggregate({ where: { siswaId: id }, _sum: { poin: true } }),
+    ]);
 
     if (!siswa) return null;
 
@@ -242,6 +243,8 @@ export const getOneSiswa = async (id) => {
 
     return {
         ...siswa,
+        totalPoinPlus: allPoinPlus._sum.poin ?? 0,
+        totalPoinMinus: allPoinMinus._sum.poin ?? 0,
         ringkasan: {
             rataRataNilai: parseFloat(rataRataNilai.toFixed(2)),
             rataRataNilaiKriteria: parseFloat(rataRataNilaiKriteria.toFixed(2)),
