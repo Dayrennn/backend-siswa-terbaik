@@ -105,10 +105,21 @@ export const getAllPertemuan = async () => {
 export const getOnePertemuan = async (id) => {
     const pertemuans = await prisma.pertemuan.findUnique({
         where: { id },
-        include: {
-            tahunAjaran: true,
-            kelas: true,
-        },
+        select: {
+            id: true,
+            kelasId: true,
+            namaPertemuan: true,
+            kehadiran: {
+                select: {
+                    statusKehadiran: true,
+                    siswa: {
+                        select: {
+                            namaSiswa: true,
+                        }
+                    }
+                }
+            }
+        }
     });
 
     return pertemuans;
