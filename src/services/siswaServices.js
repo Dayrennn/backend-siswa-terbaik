@@ -163,6 +163,24 @@ export const getAllSiswa = async () => {
                     tanggalKehadiran: true,
                 },
             },
+            poinPlus: {
+                select: {
+                    id: true,
+                    siswaId: true,
+                    deskripsi: true,
+                    poin: true,
+                    tanggal: true,
+                },
+            },
+            poinMinus: {
+                select: {
+                    id: true,
+                    siswaId: true,
+                    deskripsi: true,
+                    poin: true,
+                    tanggal: true,
+                },
+            },
         },
     });
 
@@ -183,6 +201,24 @@ export const getOneSiswa = async (id) => {
                 select: {
                     statusKehadiran: true,
                     tanggalKehadiran: true,
+                },
+            },
+            poinPlus: {
+                select: {
+                    id: true,
+                    siswaId: true,
+                    deskripsi: true,
+                    poin: true,
+                    tanggal: true,
+                },
+            },
+            poinMinus: {
+                select: {
+                    id: true,
+                    siswaId: true,
+                    deskripsi: true,
+                    poin: true,
+                    tanggal: true,
                 },
             },
         },
