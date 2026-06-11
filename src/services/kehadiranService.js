@@ -211,12 +211,14 @@ export const inputKehadiranKelas = async ({ kelasId, tahunAjaranId, tanggal, keh
     });
 
     if (!pertemuan) {
+        const dayPadded = String(day).padStart(2, '0');
+        const monthPadded = String(month).padStart(2, '0');
         pertemuan = await prisma.pertemuan.create({
             data: {
                 kelasId,
                 tahunAjaranId,
                 tanggal: tanggalDate,
-                namaPertemuan: `Kehadiran ${tanggalDate.toLocaleDateString('id-ID')}`,
+                namaPertemuan: `Kehadiran ${dayPadded}/${monthPadded}/${year}`,
             },
         });
     }
@@ -259,12 +261,14 @@ export const inputKehadiranByPelajaranAndKelas = async ({
     });
 
     if (!pertemuan) {
+        const dayPadded = String(day).padStart(2, '0');
+        const monthPadded = String(month).padStart(2, '0');
         pertemuan = await prisma.pertemuan.create({
             data: {
                 kelasId,
                 tahunAjaranId,
                 tanggal: tanggalDate,
-                namaPertemuan: `Kehadiran ${tanggalDate.toLocaleDateString('id-ID')}`,
+                namaPertemuan: `Kehadiran ${dayPadded}/${monthPadded}/${year}`,
             },
         });
     }
@@ -370,12 +374,19 @@ export const inputKehadiranByJadwal = async ({ jadwalId, tanggal, namaPertemuan,
         where: { kelasId, tanggal: tanggalDate },
     });
     if (!pertemuan) {
+        let finalNamaPertemuan = namaPertemuan;
+        if (!finalNamaPertemuan) {
+            const [tYear, tMonth, tDay] = tanggal.split('-').map(Number);
+            const dayPadded = String(tDay).padStart(2, '0');
+            const monthPadded = String(tMonth).padStart(2, '0');
+            finalNamaPertemuan = `Kehadiran ${dayPadded}/${monthPadded}/${tYear}`;
+        }
         pertemuan = await prisma.pertemuan.create({
             data: {
                 kelasId,
                 tahunAjaranId,
                 tanggal: tanggalDate,
-                namaPertemuan: namaPertemuan ?? `Pertemuan ${tanggal}`,
+                namaPertemuan: finalNamaPertemuan,
             },
         });
     }
