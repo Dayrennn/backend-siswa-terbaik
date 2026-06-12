@@ -164,7 +164,8 @@ model Eskul {
   namaEskul String
 
   siswa     SiswaEskul[]
-  pertemuan PertemuanEskul[] 
+  pertemuan PertemuanEskul[]
+  jadwalEskul JadwalEskul[]
 }
 model SiswaEskul {
   id      String @id @default(uuid())
@@ -207,6 +208,16 @@ model AbsensiEskul {
   tahunAjaran    TahunAjaran?   @relation(fields: [tahunAjaranId], references: [id])
 
   @@unique([siswaEskulId, pertemuanEskulId])
+}
+
+model JadwalEskul {
+  id         String @id @default(uuid())
+  eskulId    String
+  hari       Hari
+  jamMulai   Int
+  jamSelesai Int
+
+  eskul Eskul @relation(fields: [eskulId], references: [id])
 }
 
 model Kehadiran {
