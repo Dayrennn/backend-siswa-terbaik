@@ -160,18 +160,53 @@ model PoinMinus {
 }
 
 model Eskul {
-  id String @id @default(uuid())
+  id        String @id @default(uuid())
   namaEskul String
 
-  siswa SiswaEskul[]
+  siswa     SiswaEskul[]
+  pertemuan PertemuanEskul[] 
 }
 model SiswaEskul {
-  id String @id @default(uuid())
+  id      String @id @default(uuid())
   siswaId String
   eskulId String
+  nilai   Float?  
+  tahunAjaranId String?
 
-  siswa Siswa @relation(fields: [siswaId], references: [id])
-  eskul Eskul @relation(fields: [eskulId], references: [id])
+  siswa      Siswa       @relation(fields: [siswaId], references: [id])
+  eskul      Eskul       @relation(fields: [eskulId], references: [id])
+  tahunAjaran TahunAjaran? @relation(fields: [tahunAjaranId], references: [id])
+  absensi    AbsensiEskul[]
+
+  @@unique([siswaId, eskulId, tahunAjaranId])
+}
+
+model PertemuanEskul {
+  id             String   @id @default(uuid())
+  eskulId        String
+  namaPertemuan  String
+  tanggal        DateTime
+  tahunAjaranId  String?
+  createdAt      DateTime @default(now())
+
+  eskul       Eskul        @relation(fields: [eskulId], references: [id])
+  tahunAjaran TahunAjaran? @relation(fields: [tahunAjaranId], references: [id])
+  absensi     AbsensiEskul[]
+}
+
+model AbsensiEskul {
+  id              String          @id @default(uuid())
+  siswaEskulId    String
+  pertemuanEskulId String
+  tahunAjaranId   String?
+  status          StatusKehadiran @default(Alpha) 
+  tanggal         DateTime        @default(now())
+
+  siswaEskul     SiswaEskul     @relation(fields: [siswaEskulId], references: [id])
+  pertemuanEskul PertemuanEskul @relation(fields: [pertemuanEskulId], references: [id])
+  tahunAjaran    TahunAjaran?   @relation(fields: [tahunAjaranId], references: [id])
+
+  @@unique([siswaEskulId, pertemuanEskulId])
 }
 
 model Kehadiran {
@@ -248,6 +283,9 @@ model TahunAjaran {
   pertemuan Pertemuan[]
   kelas Kelas[]
   nilaiAkademik NilaiAkademik[]
+  siswaEskul      SiswaEskul[]
+  pertemuanEskul  PertemuanEskul[]
+  absensiEskul    AbsensiEskul[]
 }
 
 enum StatusTahunAjaran {
