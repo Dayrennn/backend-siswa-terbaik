@@ -12,6 +12,7 @@ import nilaiAkademikRoutes from '../routes/nilaiAkademikRoutes.js';
 import jadwalRoutes from '../routes/jadwalRoutes.js';
 import poinPlusRoutes from '../routes/poinPlusRoutes.js'
 import poinMinusRoutes from '../routes/poinMinusRoutes.js'
+import eskulRoutes from '../routes/eskulRoutes.js'
 import morgan from 'morgan';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -39,6 +40,7 @@ app.use('/nilaiAkademik', nilaiAkademikRoutes);
 app.use('/jadwal', jadwalRoutes);
 app.use('/poin-plus', poinPlusRoutes)
 app.use('/poin-minus', poinMinusRoutes)
+app.use('/eskul', eskulRoutes)
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
