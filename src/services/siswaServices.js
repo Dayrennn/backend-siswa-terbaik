@@ -21,6 +21,8 @@ export const addSiswa = async ({ nis, namaSiswa, tanggalLahir, kelasId, tahunAja
         },
     });
 
+    const allEskul = await prisma.eskulfindMany();
+
     const newSiswa = await prisma.siswa.create({
         data: {
             nis,
@@ -61,6 +63,12 @@ export const addSiswa = async ({ nis, namaSiswa, tanggalLahir, kelasId, tahunAja
                         jenis,
                     })),
                 ),
+            },
+            eskul: {
+                create: allEskul.map((eskul) => ({
+                    eskulId: eskul.id,
+                    tahunAjaranId,
+                })),
             },
         },
     });
@@ -269,6 +277,11 @@ export const deleteSiswa = async (id) => {
     await prisma.kehadiran.deleteMany({
         where: { siswaId: id },
     });
+    await prisma.absensiEskul.deleteMany({
+        where: { NilaiEskul: { siswaId: id } },
+    });
+    await prisma.NilaiEskul.deleteMany({ where: { siswaId: id } });
+
     const siswas = await prisma.siswa.delete({
         where: { id },
     });

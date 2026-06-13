@@ -19,6 +19,31 @@ export const addEskul = async ({ namaEskul }) => {
         },
     });
 
+    const tahunAjaranAktif = await prisma.tahunAjaran.findFirst({
+        where: { status: 'Aktif' },
+    });
+
+    if (tahunAjaranAktif) {
+        const allSiswa = await prisma.siswa.findMany({
+            where: {
+                tahunAjaranId: tahunAjaranAktif.id,
+            },
+            select: {
+                id: true,
+            },
+        });
+        if (allSiswa.length > 0) {
+            await prisma.nilaiEskul.createMany({
+                data: allSiswa.map((siswa) => ({
+                    siswaId: siswa.id,
+                    eskulId: newEskul.id,
+                    tahunAjaranId: tahunAjaranAktif.id,
+                    nilai: 0,
+                })),
+            });
+        }
+    }
+
     return newEskul;
 };
 
@@ -78,9 +103,9 @@ export const deleteEskul = async (id) => {
     await prisma.pertemuanEskul.deleteMany({ where: { eskulId: id } });
 
     await prisma.absensiEskul.deleteMany({
-        where: { siswaEskul: { eskulId: id } },
+        where: { nilaiEskul: { eskulId: id } },
     });
-    await prisma.siswaEskul.deleteMany({ where: { eskulId: id } });
+    await prisma.nilaiEskul.deleteMany({ where: { eskulId: id } });
 
     const remove = await prisma.eskul.delete({ where: { id } });
     return remove;

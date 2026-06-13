@@ -54,7 +54,7 @@ model Siswa {
   hafalan Hafalan[]
   poinPlus PoinPlus[]
   poinMinus PoinMinus[]
-  eskul SiswaEskul[]
+  eskul NilaiEskul[]
   kehadiran Kehadiran[]
   ranking Ranking[]
   nilaiAkademik NilaiAkademik[]
@@ -75,6 +75,7 @@ model Kelas {
   waliKelas User[]
   nilaiAkademik NilaiAkademik[]
   jadwal Jadwal[]
+  jadwalEskul JadwalEskul[]
   tahunAjaran TahunAjaran? @relation(fields: [tahunAjaranId], references: [id])
 }
 
@@ -163,11 +164,11 @@ model Eskul {
   id        String @id @default(uuid())
   namaEskul String
 
-  siswa     SiswaEskul[]
+  siswa     NilaiEskul[]
   pertemuan PertemuanEskul[]
   jadwalEskul JadwalEskul[]
 }
-model SiswaEskul {
+model NilaiEskul {
   id      String @id @default(uuid())
   siswaId String
   eskulId String
@@ -197,27 +198,29 @@ model PertemuanEskul {
 
 model AbsensiEskul {
   id              String          @id @default(uuid())
-  siswaEskulId    String
+  NilaiEskulId    String
   pertemuanEskulId String
   tahunAjaranId   String?
   status          StatusKehadiran @default(Alpha) 
   tanggal         DateTime        @default(now())
 
-  siswaEskul     SiswaEskul     @relation(fields: [siswaEskulId], references: [id])
+  NilaiEskul     NilaiEskul     @relation(fields: [NilaiEskulId], references: [id])
   pertemuanEskul PertemuanEskul @relation(fields: [pertemuanEskulId], references: [id])
   tahunAjaran    TahunAjaran?   @relation(fields: [tahunAjaranId], references: [id])
 
-  @@unique([siswaEskulId, pertemuanEskulId])
+  @@unique([NilaiEskulId, pertemuanEskulId])
 }
 
 model JadwalEskul {
   id         String @id @default(uuid())
   eskulId    String
+  kelasId String
   hari       Hari
   jamMulai   Int
   jamSelesai Int
 
   eskul Eskul @relation(fields: [eskulId], references: [id])
+  kelas Kelas @relation(fields: [kelasId], references: [id])
 }
 
 model Kehadiran {
@@ -294,7 +297,7 @@ model TahunAjaran {
   pertemuan Pertemuan[]
   kelas Kelas[]
   nilaiAkademik NilaiAkademik[]
-  siswaEskul      SiswaEskul[]
+  NilaiEskul      NilaiEskul[]
   pertemuanEskul  PertemuanEskul[]
   absensiEskul    AbsensiEskul[]
 }
