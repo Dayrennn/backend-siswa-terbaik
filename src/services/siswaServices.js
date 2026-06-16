@@ -373,3 +373,24 @@ export const getSiswaWithKehadiran = async () => {
 
     return siswas;
 };
+
+export const getSiswaByEskul = async ({ tahunAjaranId, eskulId }) => {
+    const siswas = await prisma.siswa.findMany({
+        where: {
+            eskulId,
+            tahunAjaranId,
+        },
+        select: {
+            id: true,
+            namaSiswa: true,
+            kelas: {
+                select: {
+                    kodeKelas: true,
+                },
+            },
+            eskul: true,
+        },
+    });
+
+    return siswas;
+};

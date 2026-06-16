@@ -7,6 +7,7 @@ import {
     getSiswaByTahunAjaran,
     getSiswaByTahunAjaranAndKelas,
     getSiswaWithKehadiran,
+    getSiswaByEskul,
 } from '../services/siswaServices.js';
 
 export const createSiswa = async (req, res) => {
@@ -115,5 +116,21 @@ export const seeAllSiswaByKehadiran = async (req, res) => {
         });
     } catch (error) {
         res.status(400).json({ message: error.message });
+    }
+};
+
+export const seeAllSiswaByEskul = async (req, res) => {
+    try {
+        const { eskulId } = req.params;
+        const { tahunAjaranId } = req.query;
+        const siswas = await getSiswaByEskul({ tahunAjaranId, eskulId });
+        res.status(200).json({
+            message: 'Berhasil ambil data siswa by eskul',
+            data: siswas,
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: error.message,
+        });
     }
 };
