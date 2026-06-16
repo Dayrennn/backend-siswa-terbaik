@@ -44,6 +44,7 @@ model Siswa {
   namaSiswa         String 
   tanggalLahir DateTime
   kelasId      String?
+  eskulId     String?
   tahunAjaranId String?
   createdAt    DateTime   @default(now())
   updateAt     DateTime   @updatedAt
@@ -61,6 +62,7 @@ model Siswa {
 
   tahunAjaran TahunAjaran? @relation(fields: [tahunAjaranId], references: [id])
   kelas Kelas? @relation(fields: [kelasId], references: [id])
+  siswaEskul Eskul? @relation(fields: [eskulId], references: [id])
 }
 
 model Kelas {
@@ -162,11 +164,13 @@ model PoinMinus {
 
 model Eskul {
   id        String @id @default(uuid())
+  siswaId String?
   namaEskul String
 
   siswa     NilaiEskul[]
   pertemuan PertemuanEskul[]
   jadwalEskul JadwalEskul[]
+  siswaEskul Siswa[]
 }
 model NilaiEskul {
   id      String @id @default(uuid())

@@ -103,7 +103,7 @@ export const deleteEskul = async (id) => {
     await prisma.pertemuanEskul.deleteMany({ where: { eskulId: id } });
 
     await prisma.absensiEskul.deleteMany({
-        where: { nilaiEskul: { eskulId: id } },
+        where: { NilaiEskul: { eskulId: id } },
     });
     await prisma.nilaiEskul.deleteMany({ where: { eskulId: id } });
 

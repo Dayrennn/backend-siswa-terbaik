@@ -77,7 +77,7 @@ export const addSiswa = async ({ nis, namaSiswa, tanggalLahir, kelasId, tahunAja
 };
 
 // update siswa
-export const updateSiswa = async (id, { nis, namaSiswa, tanggalLahir, kelasId, nilai, nilaiKriteria }) => {
+export const updateSiswa = async (id, { nis, namaSiswa, tanggalLahir, kelasId, nilai, nilaiKriteria, eskulId }) => {
     const existingSiswa = await prisma.siswa.findUnique({
         where: { id },
     });
@@ -99,6 +99,7 @@ export const updateSiswa = async (id, { nis, namaSiswa, tanggalLahir, kelasId, n
     if (namaSiswa) data.namaSiswa = namaSiswa;
     if (tanggalLahir) data.tanggalLahir = new Date(tanggalLahir);
     if (kelasId) data.kelas = { connect: { id: kelasId } };
+    if (eskulId) data.siswaEskul = { connect: { id: eskulId } };
 
     // Update nilai jika dikirim
     if (nilai) {
@@ -155,6 +156,11 @@ export const getAllSiswa = async () => {
         include: {
             tahunAjaran: true,
             kelas: true,
+            eskul: {
+                include: {
+                    eskul: true,
+                },
+            },
             nilai: {
                 include: { pelajaran: true },
             },
@@ -215,6 +221,11 @@ export const getOneSiswa = async (id) => {
                 kelas: true,
                 nilai: { include: { pelajaran: true } },
                 nilaiKriteria: { include: { kriteria: true } },
+                eskul: {
+                    include: {
+                        eskul: true,
+                    },
+                },
                 kehadiran: {
                     select: { statusKehadiran: true, tanggalKehadiran: true },
                 },
@@ -294,6 +305,11 @@ export const getSiswaByTahunAjaran = async (tahunAjaranId) => {
         include: {
             kelas: true,
             tahunAjaran: true,
+            eskul: {
+                include: {
+                    eskul: true,
+                },
+            },
             nilai: {
                 include: {
                     pelajaran: true,
@@ -309,12 +325,18 @@ export const getSiswaByTahunAjaran = async (tahunAjaranId) => {
     return siswas;
 };
 
-export const getSiswaByTahunAjaranAndKelas = async (tahunAjaranId, kelasId) => {
+export const getSiswaByTahunAjaranAndKelas = async ({ tahunAjaranId, kelasId }) => {
     const siswas = await prisma.siswa.findMany({
         where: { tahunAjaranId, kelasId },
         include: {
             kelas: true,
             tahunAjaran: true,
+            siswaEskul: true,
+            eskul: {
+                include: {
+                    eskul: true,
+                },
+            },
             nilai: {
                 include: {
                     pelajaran: true,
