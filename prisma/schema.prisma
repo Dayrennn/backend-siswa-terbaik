@@ -1,285 +1,21 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// ============================================================
+//  PRISMA SCHEMA — Sistem Raport & SMART
+//  Versi disederhanakan: input nilai & absen langsung rekap,
+//  tanpa sistem absensi per-pertemuan.
+// ============================================================
 
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-model User {
-    id          String        @id @unique @default(uuid())
-    email       String        @unique
-    username    String?
-    telephone    String?
-    role        Role          @default(Guru)
-    password    String
-    isVerified  Boolean       @default(false)
-    kelasId String?
-    otps        Otp[]
-
-    pelajaran Pelajaran[]
-    kelas Kelas? @relation(fields: [kelasId], references: [id])
-}
-
-model Otp {
-  id        String      @id @unique @default(uuid())
-  userId    String?
-  email     String
-  code      String
-  type      String   
-  metadata  String?
-  expiresAt DateTime
-  createdAt DateTime    @default(now())
-  user      User?       @relation(fields: [userId], references: [id])
-}
-
-model Siswa {
-  id           String      @id @unique @default(uuid())
-  nis          String?
-  namaSiswa         String 
-  tanggalLahir DateTime
-  kelasId      String?
-  eskulId     String?
-  tahunAjaranId String?
-  createdAt    DateTime   @default(now())
-  updateAt     DateTime   @updatedAt
-
-  nilai        Nilai[]
-  nilaiKriteria NilaiKriteria[]
-  pelajaran Pelajaran[]
-  hafalan Hafalan[]
-  poinPlus PoinPlus[]
-  poinMinus PoinMinus[]
-  eskul NilaiEskul[]
-  kehadiran Kehadiran[]
-  ranking Ranking[]
-  nilaiAkademik NilaiAkademik[]
-
-  tahunAjaran TahunAjaran? @relation(fields: [tahunAjaranId], references: [id])
-  kelas Kelas? @relation(fields: [kelasId], references: [id])
-  siswaEskul Eskul? @relation(fields: [eskulId], references: [id])
-}
-
-model Kelas {
-  id String @id @default(uuid())
-  kodeKelas String
-  namaKelas String
-  tahunAjaranId String?
-
-  siswa Siswa[]
-  pertemuan Pertemuan[]
-  kehadiran Kehadiran[]
-  waliKelas User[]
-  nilaiAkademik NilaiAkademik[]
-  jadwal Jadwal[]
-  jadwalEskul JadwalEskul[]
-  tahunAjaran TahunAjaran? @relation(fields: [tahunAjaranId], references: [id])
-}
-
-model Nilai {
-  id                String      @id @unique @default(uuid())
-  nilai             Float
-
-  siswaId           String    
-  pelajaranId   String
-  tahunAjaranId String
-
-  siswa             Siswa           @relation(fields: [siswaId],  references: [id])
-  pelajaran     Pelajaran   @relation(fields: [pelajaranId], references: [id])
-  tahunAjaran TahunAjaran @relation(fields: [tahunAjaranId], references: [id])
-
-   @@unique([siswaId, pelajaranId]) 
-}
-
-model Kriteria {
-  id           String   @id @default(uuid())
-  namaKriteria String
-  bobot        Float
-  jenis        String   // benefit atau cost
-
-  nilaiKriteria NilaiKriteria[]
-}
-
-model NilaiKriteria {
-  id            String   @id @default(uuid())
-
-  siswaId       String
-  kriteriaId    String
-  nilai         Float
-
-  siswa         Siswa @relation(fields: [siswaId], references: [id])
-  kriteria      Kriteria @relation(fields: [kriteriaId], references: [id])
-
-  @@unique([siswaId, kriteriaId])
-}
-
-model Pelajaran {
-  id String @id @default(uuid())
-  namaPelajaran String
-  kodePelajaran String
-
-  nilai Nilai[]
-  user User[]
-  siswa Siswa[]
-  nilaiAkademik NilaiAkademik[]
-  jadwal Jadwal[]
-  kehadiran Kehadiran[]
-}
-
-model Hafalan {
-  id            String   @id @default(uuid())
-  siswaId String @unique
-
-  siswa Siswa @relation(fields: [siswaId], references: [id])
-
-  jumlahJuz Int
-}
-
-model PoinPlus {
-  id            String   @id @default(uuid())
-  siswaId String 
-
-  siswa Siswa @relation(fields: [siswaId], references: [id])
-
-  deskripsi String
-  poin Int
-  tanggal DateTime @default(now())
-}
-
-model PoinMinus {
-  id String @id @default(uuid())
-  siswaId String
-
-  siswa Siswa @relation(fields: [siswaId], references: [id])
-
-  deskripsi String
-  poin Int
-  tanggal DateTime @default(now())
-}
-
-model Eskul {
-  id        String @id @default(uuid())
-  siswaId String?
-  namaEskul String
-
-  siswa     NilaiEskul[]
-  pertemuan PertemuanEskul[]
-  jadwalEskul JadwalEskul[]
-  siswaEskul Siswa[]
-}
-model NilaiEskul {
-  id      String @id @default(uuid())
-  siswaId String
-  eskulId String
-  nilai   Float?  
-  tahunAjaranId String?
-
-  siswa      Siswa       @relation(fields: [siswaId], references: [id])
-  eskul      Eskul       @relation(fields: [eskulId], references: [id])
-  tahunAjaran TahunAjaran? @relation(fields: [tahunAjaranId], references: [id])
-  absensi    AbsensiEskul[]
-
-  @@unique([siswaId, eskulId, tahunAjaranId])
-}
-
-model PertemuanEskul {
-  id             String   @id @default(uuid())
-  eskulId        String
-  namaPertemuan  String
-  tanggal        DateTime
-  tahunAjaranId  String?
-  createdAt      DateTime @default(now())
-
-  eskul       Eskul        @relation(fields: [eskulId], references: [id])
-  tahunAjaran TahunAjaran? @relation(fields: [tahunAjaranId], references: [id])
-  absensi     AbsensiEskul[]
-}
-
-model AbsensiEskul {
-  id              String          @id @default(uuid())
-  NilaiEskulId    String
-  pertemuanEskulId String
-  tahunAjaranId   String?
-  status          StatusKehadiran @default(Alpha) 
-  tanggal         DateTime        @default(now())
-
-  NilaiEskul     NilaiEskul     @relation(fields: [NilaiEskulId], references: [id])
-  pertemuanEskul PertemuanEskul @relation(fields: [pertemuanEskulId], references: [id])
-  tahunAjaran    TahunAjaran?   @relation(fields: [tahunAjaranId], references: [id])
-
-  @@unique([NilaiEskulId, pertemuanEskulId])
-}
-
-model JadwalEskul {
-  id         String @id @default(uuid())
-  eskulId    String
-  kelasId String
-  hari       Hari
-  jamMulai   Int
-  jamSelesai Int
-
-  eskul Eskul @relation(fields: [eskulId], references: [id])
-  kelas Kelas @relation(fields: [kelasId], references: [id])
-}
-
-model Kehadiran {
-  id String @id @default(uuid())
-  tahunAjaranId String?
-  pertemuanId String
-  pelajaranId String?
-  siswaId String
-  kelasId String
-  jadwalId String?
-  statusKehadiran StatusKehadiran @default(Alpha)
-  tanggalKehadiran DateTime @default(now())
-
-  pelajaran Pelajaran? @relation(fields: [pelajaranId], references: [id])
-  siswa Siswa @relation(fields: [siswaId], references: [id])
-  tahunAjaran TahunAjaran? @relation(fields: [tahunAjaranId], references: [id])
-  pertemuan Pertemuan @relation(fields: [pertemuanId], references: [id])
-  kelas Kelas @relation(fields: [kelasId], references: [id])
-  jadwal Jadwal? @relation(fields: [jadwalId], references: [id])
-  @@unique([siswaId, pertemuanId])
-}
-
-model Pertemuan {
-  id String @id @default(uuid())
-  tahunAjaranId String?
-  tanggal DateTime
-  kelasId String?
-  namaPertemuan String
-  createdAt DateTime @default(now())
-
-  tahunAjaran TahunAjaran? @relation(fields: [tahunAjaranId], references: [id])
-  kelas Kelas? @relation(fields: [kelasId], references: [id])
-  kehadiran Kehadiran[]
-}
-
-model Ranking {
-  id String @id @default(uuid())
-  tahunAjaranId String
-  siswaId String
-  nilaiAkhir Float
-  peringkat Int
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  siswa Siswa @relation(fields: [siswaId], references: [id])
-  tahunAjaran TahunAjaran @relation(fields: [tahunAjaranId], references: [id])
-  @@unique([siswaId, tahunAjaranId])
-}
-
-enum StatusKehadiran {
-  Hadir
-  Izin
-  Sakit
-  Alpha
-}
+// ============================================================
+//  ENUMS
+// ============================================================
 
 enum Role {
   Guru
@@ -289,71 +25,319 @@ enum Role {
   Admin
 }
 
-model TahunAjaran {
-  id String @id @default(uuid())
-  namaTahunAjaran String
-  status StatusTahunAjaran @default(Aktif)
-
-  siswa Siswa[]
-  kehadiran Kehadiran[]
-  nilai Nilai[]
-  ranking Ranking[]
-  pertemuan Pertemuan[]
-  kelas Kelas[]
-  nilaiAkademik NilaiAkademik[]
-  NilaiEskul      NilaiEskul[]
-  pertemuanEskul  PertemuanEskul[]
-  absensiEskul    AbsensiEskul[]
-}
-
 enum StatusTahunAjaran {
   Aktif
   Nonaktif
 }
 
-model NilaiAkademik {
-  id            String     @id @default(uuid())
+enum JenisKriteria {
+  benefit // semakin tinggi semakin baik (nilai, hafalan, poin plus)
+  cost    // semakin rendah semakin baik (alpha, poin minus)
+}
+
+// ============================================================
+//  MASTER DATA
+// ============================================================
+
+/// Tahun ajaran aktif hanya boleh satu.
+/// Semua data transaksional mengacu ke sini untuk keperluan filter.
+model TahunAjaran {
+  id              String            @id @default(uuid())
+  namaTahunAjaran String            // contoh: "2024/2025 Semester 1"
+  status          StatusTahunAjaran @default(Aktif)
+  createdAt       DateTime          @default(now())
+
+  // Relasi
+  siswa           Siswa[]
+  kelas           Kelas[]
+  nilaiRekap      NilaiRekap[]
+  absenRekap      AbsenRekap[]
+  nilaiEskulRekap NilaiEskulRekap[]
+  poinPlus        PoinPlus[]
+  poinMinus       PoinMinus[]
+  nilaiKriteria   NilaiKriteria[]
+  ranking         Ranking[]
+  otp             Otp[]
+}
+
+model Kelas {
+  id            String  @id @default(uuid())
+  kodeKelas     String
+  namaKelas     String
+  tahunAjaranId String?
+
+  // Relasi
+  tahunAjaran     TahunAjaran?      @relation(fields: [tahunAjaranId], references: [id])
+  waliKelas       User[]
+  siswa           Siswa[]
+  nilaiRekap      NilaiRekap[]
+  absenRekap      AbsenRekap[]
+  nilaiEskulRekap NilaiEskulRekap[]
+}
+
+model Pelajaran {
+  id            String @id @default(uuid())
+  namaPelajaran String
+  kodePelajaran String
+
+  // Relasi
+  nilaiRekap NilaiRekap[]
+  absenRekap AbsenRekap[]
+  guru       User[]
+}
+
+model Eskul {
+  id        String @id @default(uuid())
+  namaEskul String
+  deskripsi String?
+
+  // Relasi
+  nilaiEskulRekap NilaiEskulRekap[]
+}
+
+// ============================================================
+//  USER (GURU / STAFF)
+// ============================================================
+
+model User {
+  id         String  @id @default(uuid())
+  email      String  @unique
+  username   String?
+  telephone  String?
+  role       Role    @default(Guru)
+  password   String
+  isVerified Boolean @default(false)
+
+  // Relasi
+  kelasWali Kelas[]
+  pelajaran Pelajaran[]
+  otps      Otp[]
+}
+
+model Otp {
+  id            String      @id @default(uuid())
+  userId        String?
+  email         String
+  code          String
+  type          String
+  metadata      String?
+  expiresAt     DateTime
+  createdAt     DateTime    @default(now())
+  tahunAjaranId String?
+
+  user        User?        @relation(fields: [userId], references: [id])
+  tahunAjaran TahunAjaran? @relation(fields: [tahunAjaranId], references: [id])
+}
+
+// ============================================================
+//  SISWA
+// ============================================================
+
+model Siswa {
+  id            String   @id @default(uuid())
+  nis           String?
+  namaSiswa     String
+  tanggalLahir  DateTime
+  kelasId       String?
+  tahunAjaranId String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relasi
+  kelas           Kelas?            @relation(fields: [kelasId], references: [id])
+  tahunAjaran     TahunAjaran?      @relation(fields: [tahunAjaranId], references: [id])
+  nilaiRekap      NilaiRekap[]
+  absenRekap      AbsenRekap[]
+  nilaiEskulRekap NilaiEskulRekap[]
+  hafalan         Hafalan?
+  poinPlus        PoinPlus[]
+  poinMinus       PoinMinus[]
+  nilaiKriteria   NilaiKriteria[]
+  ranking         Ranking[]
+}
+
+// ============================================================
+//  NILAI & ABSEN — REKAP LANGSUNG (INTI PERUBAHAN)
+// ============================================================
+
+/// Guru input nilai akhir per siswa per pelajaran per tahun ajaran.
+/// Tidak ada lagi input per UH / tugas / pertemuan.
+/// Jika butuh breakdown nilai (UH, UTS, UAS), bisa ditambahkan
+/// sebagai field opsional di sini, bukan tabel terpisah.
+model NilaiRekap {
+  id            String  @id @default(uuid())
   siswaId       String
   pelajaranId   String
   tahunAjaranId String
   kelasId       String
-  jenis         JenisNilai
-  nilai         Float     @default(0)
-  tanggal       DateTime   @default(now())
+
+  nilaiAkhir    Float   @default(0) // nilai akhir semester (0–100)
+
+  // Opsional: breakdown komponen nilai (nullable)
+  nilaiTugas    Float?
+  nilaiUH       Float?  // ulangan harian rata-rata
+  nilaiUTS      Float?
+  nilaiUAS      Float?
+
   keterangan    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   siswa       Siswa       @relation(fields: [siswaId], references: [id])
   pelajaran   Pelajaran   @relation(fields: [pelajaranId], references: [id])
   tahunAjaran TahunAjaran @relation(fields: [tahunAjaranId], references: [id])
   kelas       Kelas       @relation(fields: [kelasId], references: [id])
+
+  @@unique([siswaId, pelajaranId, tahunAjaranId])
 }
 
-enum JenisNilai {
-  Tugas
-  UlanganHarian
-  UTS
-  UAS
+/// Guru input rekap kehadiran per siswa per pelajaran per tahun ajaran.
+/// Tidak perlu absen tiap hari — cukup total per semester.
+model AbsenRekap {
+  id            String @id @default(uuid())
+  siswaId       String
+  pelajaranId   String
+  tahunAjaranId String
+  kelasId       String
+
+  totalPertemuan Int @default(0) // total pertemuan yang diadakan
+  totalHadir     Int @default(0)
+  totalSakit     Int @default(0)
+  totalIzin      Int @default(0)
+  totalAlpha     Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  siswa       Siswa       @relation(fields: [siswaId], references: [id])
+  pelajaran   Pelajaran   @relation(fields: [pelajaranId], references: [id])
+  tahunAjaran TahunAjaran @relation(fields: [tahunAjaranId], references: [id])
+  kelas       Kelas       @relation(fields: [kelasId], references: [id])
+
+  @@unique([siswaId, pelajaranId, tahunAjaranId])
 }
 
-model Jadwal {
-  id String @id @default(uuid())
-  pelajaranId String
-  kelasId String
-  hari Hari
-  jamMulai Int
-  jamSelesai Int
+/// Rekap nilai & kehadiran eskul langsung per siswa per eskul.
+/// Tidak ada lagi PertemuanEskul / AbsensiEskul.
+model NilaiEskulRekap {
+  id            String @id @default(uuid())
+  siswaId       String
+  eskulId       String
+  tahunAjaranId String
+  kelasId       String
 
-  pelajaran Pelajaran @relation(fields: [pelajaranId], references: [id])
-  kelas Kelas @relation(fields: [kelasId], references: [id])
-  kehadiran Kehadiran[]
+  nilaiAkhir     Float? // nilai akhir eskul (opsional)
+  totalPertemuan Int    @default(0)
+  totalHadir     Int    @default(0)
+  totalAlpha     Int    @default(0)
+
+  keterangan String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  siswa       Siswa       @relation(fields: [siswaId], references: [id])
+  eskul       Eskul       @relation(fields: [eskulId], references: [id])
+  tahunAjaran TahunAjaran @relation(fields: [tahunAjaranId], references: [id])
+  kelas       Kelas       @relation(fields: [kelasId], references: [id])
+
+  @@unique([siswaId, eskulId, tahunAjaranId])
 }
 
-enum Hari {
-  Senin
-  Selasa
-  Rabu
-  Kamis
-  Jumat
-  Sabtu
-  Minggu
+// ============================================================
+//  HAFALAN & POIN PERILAKU (TETAP SEPERTI SEBELUMNYA)
+// ============================================================
+
+/// Satu record per siswa — diupdate saat hafalan bertambah.
+model Hafalan {
+  id        String @id @default(uuid())
+  siswaId   String @unique
+  jumlahJuz Int    @default(0)
+
+  siswa Siswa @relation(fields: [siswaId], references: [id])
+}
+
+/// Poin positif per-kejadian (tidak berubah).
+model PoinPlus {
+  id            String   @id @default(uuid())
+  siswaId       String
+  tahunAjaranId String?
+  deskripsi     String
+  poin          Int
+  tanggal       DateTime @default(now())
+
+  siswa       Siswa        @relation(fields: [siswaId], references: [id])
+  tahunAjaran TahunAjaran? @relation(fields: [tahunAjaranId], references: [id])
+}
+
+/// Poin negatif per-kejadian (tidak berubah).
+model PoinMinus {
+  id            String   @id @default(uuid())
+  siswaId       String
+  tahunAjaranId String?
+  deskripsi     String
+  poin          Int
+  tanggal       DateTime @default(now())
+
+  siswa       Siswa        @relation(fields: [siswaId], references: [id])
+  tahunAjaran TahunAjaran? @relation(fields: [tahunAjaranId], references: [id])
+}
+
+// ============================================================
+//  SMART — CORE CALCULATION
+// ============================================================
+
+/// Definisi kriteria penilaian SMART.
+/// Contoh kriteria:
+///   - Nilai Akademik (benefit, bobot 0.4)
+///   - Kehadiran / % Hadir (benefit, bobot 0.2)
+///   - Hafalan Quran (benefit, bobot 0.2)
+///   - Poin Perilaku Net (benefit, bobot 0.15) — dihitung dari plus - minus
+///   - Nilai Eskul (benefit, bobot 0.05)
+model Kriteria {
+  id           String        @id @default(uuid())
+  namaKriteria String
+  bobot        Float         // total semua bobot harus = 1.0
+  jenis        JenisKriteria // benefit atau cost
+
+  nilaiKriteria NilaiKriteria[]
+}
+
+/// Nilai tiap siswa per kriteria, dihitung otomatis dari data rekap.
+/// Di-generate ulang setiap kali data rekap diubah (via service/job).
+/// Nilai sudah dinormalisasi (0–1) sebelum disimpan, atau bisa simpan raw
+/// dan normalisasi saat proses SMART — terserah preferensi implementasi.
+model NilaiKriteria {
+  id            String @id @default(uuid())
+  siswaId       String
+  kriteriaId    String
+  tahunAjaranId String
+
+  nilaiRaw       Float  // nilai mentah sebelum normalisasi
+  nilaiNormalisasi Float @default(0) // hasil normalisasi SMART (0–1)
+
+  updatedAt DateTime @updatedAt
+
+  siswa       Siswa       @relation(fields: [siswaId], references: [id])
+  kriteria    Kriteria    @relation(fields: [kriteriaId], references: [id])
+  tahunAjaran TahunAjaran @relation(fields: [tahunAjaranId], references: [id])
+
+  @@unique([siswaId, kriteriaId, tahunAjaranId])
+}
+
+/// Hasil akhir perhitungan SMART per siswa per tahun ajaran.
+model Ranking {
+  id            String   @id @default(uuid())
+  siswaId       String
+  tahunAjaranId String
+
+  nilaiAkhir Float // hasil akhir SMART (weighted sum)
+  peringkat  Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  siswa       Siswa       @relation(fields: [siswaId], references: [id])
+  tahunAjaran TahunAjaran @relation(fields: [tahunAjaranId], references: [id])
+
+  @@unique([siswaId, tahunAjaranId])
 }
