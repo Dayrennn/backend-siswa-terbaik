@@ -1,7 +1,6 @@
 import prisma from '../config/prisma.js';
 
 export const addKriteria = async ({ namaKriteria, bobot, jenis }) => {
-    // cek field
     if (!namaKriteria?.trim() || !jenis?.trim()) {
         throw new Error('Nama kriteria wajib di isi');
     }
@@ -11,43 +10,21 @@ export const addKriteria = async ({ namaKriteria, bobot, jenis }) => {
     }
 
     const existingKriteria = await prisma.kriteria.findFirst({
-        where: {
-            OR: [{ namaKriteria }],
-        },
+        where: { namaKriteria },
     });
 
     if (existingKriteria) throw new Error('Data sudah ada');
 
     const newKriteria = await prisma.kriteria.create({
         data: {
-            namaKriteria: namaKriteria,
+            namaKriteria,
             bobot: parseFloat(bobot),
-            jenis: jenis,
+            jenis,
         },
     });
 
-    const tahunAjaranAktif = await prisma.tahunAjaran.findFirst({
-        where: { status: 'Aktif' },
-    });
-
-    if (tahunAjaranAktif) {
-        const allSiswa = await prisma.siswa.findMany({
-            where: {
-                tahunAjaranId: tahunAjaranAktif.id,
-            },
-            select: { id: true },
-        });
-        if (allSiswa.length > 0) {
-            await prisma.nilaiKriteria.createMany({
-                data: allSiswa.map((siswa) => ({
-                    siswaId: siswa.id,
-                    kriteriaId: newKriteria.id,
-                    nilai: 0,
-                })),
-                skipDuplicates: true,
-            });
-        }
-    }
+    // NilaiKriteria tidak lagi di-generate saat kriteria dibuat.
+    // Akan dihitung & diisi otomatis oleh smart.service saat proses kalkulasi SMART dijalankan.
 
     return newKriteria;
 };
@@ -61,10 +38,7 @@ export const updateKriteria = async (id, { namaKriteria, bobot, jenis }) => {
 
     if (namaKriteria) {
         const existing = await prisma.kriteria.findFirst({
-            where: {
-                namaKriteria,
-                NOT: { id },
-            },
+            where: { namaKriteria, NOT: { id } },
         });
         if (existing) throw new Error('nama kriteria sudah digunakan');
     }
@@ -74,12 +48,12 @@ export const updateKriteria = async (id, { namaKriteria, bobot, jenis }) => {
     if (bobot) data.bobot = parseFloat(bobot);
     if (jenis) data.jenis = jenis;
 
-    const updateKriteria = await prisma.kriteria.update({
+    const updatedKriteria = await prisma.kriteria.update({
         where: { id },
-        data: data,
+        data,
     });
 
-    return updateKriteria;
+    return updatedKriteria;
 };
 
 export const getKriteria = async () => {
@@ -108,11 +82,14 @@ export const getOneKriteria = async (id) => {
 };
 
 export const deleteKriteria = async (id) => {
+    // hapus NilaiKriteria semua siswa untuk kriteria ini sebelum delete
     await prisma.nilaiKriteria.deleteMany({
         where: { kriteriaId: id },
     });
-    const krterias = await prisma.kriteria.delete({
+
+    const kriteria = await prisma.kriteria.delete({
         where: { id },
     });
-    return krterias;
+
+    return kriteria;
 };

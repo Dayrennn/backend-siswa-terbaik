@@ -10,19 +10,6 @@ export const addSiswa = async ({ nis, namaSiswa, tanggalLahir, kelasId, tahunAja
 
     if (existingSiswa) throw new Error('Data siswa sudah ada');
 
-    const allPelajaran = await prisma.pelajaran.findMany();
-    const allKriteria = await prisma.kriteria.findMany();
-
-    // ambil semua pertemuan di kelas dan tahun ajaran yang sama
-    const allPertemuan = await prisma.pertemuan.findMany({
-        where: {
-            kelasId,
-            tahunAjaranId,
-        },
-    });
-
-    const allEskul = await prisma.eskulfindMany();
-
     const newSiswa = await prisma.siswa.create({
         data: {
             nis,
@@ -32,44 +19,6 @@ export const addSiswa = async ({ nis, namaSiswa, tanggalLahir, kelasId, tahunAja
             tahunAjaran: {
                 connect: { id: tahunAjaranId },
             },
-            nilai: {
-                create: allPelajaran.map((pelajaran) => ({
-                    pelajaranId: pelajaran.id,
-                    nilai: 0,
-                    tahunAjaranId,
-                })),
-            },
-            nilaiKriteria: {
-                create: allKriteria.map((kriteria) => ({
-                    kriteriaId: kriteria.id,
-                    nilai: 0,
-                })),
-            },
-            // generate kehadiran Alpha per pertemuan
-            kehadiran: {
-                create: allPertemuan.map((pertemuan) => ({
-                    pertemuanId: pertemuan.id,
-                    kelasId,
-                    tahunAjaranId,
-                    statusKehadiran: 'Alpha',
-                })),
-            },
-            nilaiAkademik: {
-                create: allPelajaran.flatMap((pelajaran) =>
-                    ['Tugas', 'UlanganHarian', 'UTS', 'UAS'].map((jenis) => ({
-                        pelajaranId: pelajaran.id,
-                        tahunAjaranId,
-                        kelasId,
-                        jenis,
-                    })),
-                ),
-            },
-            eskul: {
-                create: allEskul.map((eskul) => ({
-                    eskulId: eskul.id,
-                    tahunAjaranId,
-                })),
-            },
         },
     });
 
@@ -77,7 +26,7 @@ export const addSiswa = async ({ nis, namaSiswa, tanggalLahir, kelasId, tahunAja
 };
 
 // update siswa
-export const updateSiswa = async (id, { nis, namaSiswa, tanggalLahir, kelasId, nilai, nilaiKriteria, eskulId }) => {
+export const updateSiswa = async (id, { nis, namaSiswa, tanggalLahir, kelasId }) => {
     const existingSiswa = await prisma.siswa.findUnique({
         where: { id },
     });
@@ -99,56 +48,13 @@ export const updateSiswa = async (id, { nis, namaSiswa, tanggalLahir, kelasId, n
     if (namaSiswa) data.namaSiswa = namaSiswa;
     if (tanggalLahir) data.tanggalLahir = new Date(tanggalLahir);
     if (kelasId) data.kelas = { connect: { id: kelasId } };
-    if (eskulId) data.siswaEskul = { connect: { id: eskulId } };
 
-    // Update nilai jika dikirim
-    if (nilai) {
-        data.nilai = {
-            upsert: nilai.map((n) => ({
-                where: {
-                    siswaId_pelajaranId: {
-                        siswaId: id,
-                        pelajaranId: n.pelajaranId,
-                    },
-                },
-                update: { nilai: n.nilai },
-                create: { nilai: n.nilai, pelajaranId: n.pelajaranId, tahunAjaranId: existingSiswa.tahunAjaranId },
-            })),
-        };
-    }
-
-    if (nilaiKriteria) {
-        data.nilaiKriteria = {
-            upsert: nilaiKriteria.map((n) => ({
-                where: {
-                    siswaId_kriteriaId: {
-                        siswaId: id,
-                        kriteriaId: n.kriteriaId,
-                    },
-                },
-                update: { nilai: n.nilai },
-                create: { nilai: n.nilai, kriteriaId: n.kriteriaId },
-            })),
-        };
-    }
-
-    const updateSiswa = await prisma.siswa.update({
+    const updatedSiswa = await prisma.siswa.update({
         where: { id },
         data,
-        include: {
-            nilai: {
-                include: {
-                    pelajaran: true,
-                },
-            },
-            nilaiKriteria: {
-                include: {
-                    kriteria: true,
-                },
-            },
-        },
     });
-    return updateSiswa;
+
+    return updatedSiswa;
 };
 
 export const getAllSiswa = async () => {
@@ -156,22 +62,11 @@ export const getAllSiswa = async () => {
         include: {
             tahunAjaran: true,
             kelas: true,
-            eskul: {
-                include: {
-                    eskul: true,
-                },
-            },
-            nilai: {
+            nilaiRekap: {
                 include: { pelajaran: true },
             },
-            nilaiKriteria: {
-                include: { kriteria: true },
-            },
-            kehadiran: {
-                select: {
-                    statusKehadiran: true,
-                    tanggalKehadiran: true,
-                },
+            nilaiEskulRekap: {
+                include: { eskul: true },
             },
             poinPlus: {
                 select: { id: true, siswaId: true, deskripsi: true, poin: true, tanggal: true },
@@ -188,6 +83,7 @@ export const getAllSiswa = async () => {
             },
         },
     });
+
     const siswaIds = siswas.map((s) => s.id);
 
     const [allPlus, allMinus] = await Promise.all([
@@ -219,16 +115,19 @@ export const getOneSiswa = async (id) => {
             where: { id },
             include: {
                 kelas: true,
-                nilai: { include: { pelajaran: true } },
-                nilaiKriteria: { include: { kriteria: true } },
-                eskul: {
-                    include: {
-                        eskul: true,
-                    },
+                nilaiRekap: {
+                    include: { pelajaran: true },
                 },
-                kehadiran: {
-                    select: { statusKehadiran: true, tanggalKehadiran: true },
+                absenRekap: {
+                    include: { pelajaran: true },
                 },
+                nilaiEskulRekap: {
+                    include: { eskul: true },
+                },
+                nilaiKriteria: {
+                    include: { kriteria: true },
+                },
+                hafalan: true,
                 poinPlus: {
                     select: { id: true, siswaId: true, deskripsi: true, poin: true, tanggal: true },
                 },
@@ -246,19 +145,34 @@ export const getOneSiswa = async (id) => {
 
     if (!siswa) return null;
 
-    const totalNilai = siswa.nilai.reduce((sum, n) => sum + n.nilai, 0);
-    const rataRataNilai = siswa.nilai.length > 0 ? totalNilai / siswa.nilai.length : 0;
+    const totalNilaiRekap = siswa.nilaiRekap.reduce((sum, n) => sum + n.nilaiAkhir, 0);
+    const rataRataNilai =
+        siswa.nilaiRekap.length > 0 ? totalNilaiRekap / siswa.nilaiRekap.length : 0;
 
     const totalBobot = siswa.nilaiKriteria.reduce((sum, nk) => sum + nk.kriteria.bobot, 0);
-    const totalNilaiKriteriaBerbobot = siswa.nilaiKriteria.reduce((sum, nk) => sum + nk.nilai * nk.kriteria.bobot, 0);
+    const totalNilaiKriteriaBerbobot = siswa.nilaiKriteria.reduce(
+        (sum, nk) => sum + nk.nilaiNormalisasi * nk.kriteria.bobot,
+        0
+    );
     const rataRataNilaiKriteria = totalBobot > 0 ? totalNilaiKriteriaBerbobot / totalBobot : 0;
 
-    const totalKehadiran = siswa.kehadiran.length;
-    const rekapKehadiran = siswa.kehadiran.reduce((acc, k) => {
-        acc[k.statusKehadiran] = (acc[k.statusKehadiran] || 0) + 1;
-        return acc;
-    }, {});
-    const persentaseHadir = totalKehadiran > 0 ? ((rekapKehadiran['Hadir'] || 0) / totalKehadiran) * 100 : 0;
+    // rekap kehadiran dari absenRekap (akumulasi semua pelajaran)
+    const rekapKehadiran = siswa.absenRekap.reduce(
+        (acc, a) => {
+            acc.totalPertemuan += a.totalPertemuan;
+            acc.hadir += a.totalHadir;
+            acc.sakit += a.totalSakit;
+            acc.izin += a.totalIzin;
+            acc.alpha += a.totalAlpha;
+            return acc;
+        },
+        { totalPertemuan: 0, hadir: 0, sakit: 0, izin: 0, alpha: 0 }
+    );
+
+    const persentaseHadir =
+        rekapKehadiran.totalPertemuan > 0
+            ? (rekapKehadiran.hadir / rekapKehadiran.totalPertemuan) * 100
+            : 0;
 
     return {
         ...siswa,
@@ -267,7 +181,6 @@ export const getOneSiswa = async (id) => {
         ringkasan: {
             rataRataNilai: parseFloat(rataRataNilai.toFixed(2)),
             rataRataNilaiKriteria: parseFloat(rataRataNilaiKriteria.toFixed(2)),
-            totalKehadiran,
             rekapKehadiran,
             persentaseHadir: parseFloat(persentaseHadir.toFixed(2)),
         },
@@ -276,27 +189,23 @@ export const getOneSiswa = async (id) => {
 
 // delete siswa
 export const deleteSiswa = async (id) => {
-    await prisma.nilai.deleteMany({
-        where: { siswaId: id },
-    });
-    await prisma.nilaiKriteria.deleteMany({
-        where: { siswaId: id },
-    });
-    await prisma.nilaiAkademik.deleteMany({
-        where: { siswaId: id },
-    });
-    await prisma.kehadiran.deleteMany({
-        where: { siswaId: id },
-    });
-    await prisma.absensiEskul.deleteMany({
-        where: { NilaiEskul: { siswaId: id } },
-    });
-    await prisma.NilaiEskul.deleteMany({ where: { siswaId: id } });
+    // hapus semua relasi sebelum delete siswa
+    await Promise.all([
+        prisma.nilaiRekap.deleteMany({ where: { siswaId: id } }),
+        prisma.absenRekap.deleteMany({ where: { siswaId: id } }),
+        prisma.nilaiEskulRekap.deleteMany({ where: { siswaId: id } }),
+        prisma.nilaiKriteria.deleteMany({ where: { siswaId: id } }),
+        prisma.poinPlus.deleteMany({ where: { siswaId: id } }),
+        prisma.poinMinus.deleteMany({ where: { siswaId: id } }),
+        prisma.hafalan.deleteMany({ where: { siswaId: id } }),
+        prisma.ranking.deleteMany({ where: { siswaId: id } }),
+    ]);
 
-    const siswas = await prisma.siswa.delete({
+    const siswa = await prisma.siswa.delete({
         where: { id },
     });
-    return siswas;
+
+    return siswa;
 };
 
 export const getSiswaByTahunAjaran = async (tahunAjaranId) => {
@@ -305,20 +214,14 @@ export const getSiswaByTahunAjaran = async (tahunAjaranId) => {
         include: {
             kelas: true,
             tahunAjaran: true,
-            eskul: {
-                include: {
-                    eskul: true,
-                },
+            nilaiRekap: {
+                include: { pelajaran: true },
             },
-            nilai: {
-                include: {
-                    pelajaran: true,
-                },
+            nilaiEskulRekap: {
+                include: { eskul: true },
             },
             nilaiKriteria: {
-                include: {
-                    kriteria: true,
-                },
+                include: { kriteria: true },
             },
         },
     });
@@ -331,66 +234,41 @@ export const getSiswaByTahunAjaranAndKelas = async ({ tahunAjaranId, kelasId }) 
         include: {
             kelas: true,
             tahunAjaran: true,
-            siswaEskul: true,
-            eskul: {
-                include: {
-                    eskul: true,
-                },
+            nilaiRekap: {
+                include: { pelajaran: true },
             },
-            nilai: {
-                include: {
-                    pelajaran: true,
-                },
+            absenRekap: {
+                include: { pelajaran: true },
+            },
+            nilaiEskulRekap: {
+                include: { eskul: true },
             },
             nilaiKriteria: {
-                include: {
-                    kriteria: true,
-                },
+                include: { kriteria: true },
             },
         },
     });
-    return siswas;
-};
-
-export const getSiswaWithKehadiran = async () => {
-    const siswas = await prisma.siswa.findMany({
-        select: {
-            id: true,
-            namaSiswa: true,
-            kelas: {
-                select: {
-                    kodeKelas: true,
-                },
-            },
-            kehadiran: {
-                select: {
-                    statusKehadiran: true,
-                    tanggalKehadiran: true,
-                },
-            },
-        },
-    });
-
     return siswas;
 };
 
 export const getSiswaByEskul = async ({ tahunAjaranId, eskulId }) => {
-    const siswas = await prisma.siswa.findMany({
-        where: {
-            eskulId,
-            tahunAjaranId,
-        },
-        select: {
-            id: true,
-            namaSiswa: true,
-            kelas: {
-                select: {
-                    kodeKelas: true,
+    // query ke nilaiEskulRekap karena field eskulId sudah tidak ada langsung di Siswa
+    const rekaps = await prisma.nilaiEskulRekap.findMany({
+        where: { eskulId, tahunAjaranId },
+        include: {
+            siswa: {
+                include: {
+                    kelas: {
+                        select: { kodeKelas: true },
+                    },
                 },
             },
             eskul: true,
         },
     });
 
-    return siswas;
+    return rekaps.map((r) => ({
+        ...r.siswa,
+        nilaiEskulRekap: r,
+    }));
 };

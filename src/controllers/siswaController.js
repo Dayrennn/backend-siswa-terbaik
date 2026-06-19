@@ -6,23 +6,19 @@ import {
     deleteSiswa,
     getSiswaByTahunAjaran,
     getSiswaByTahunAjaranAndKelas,
-    getSiswaWithKehadiran,
     getSiswaByEskul,
 } from '../services/siswaServices.js';
 
 export const createSiswa = async (req, res) => {
     try {
         const { tahunAjaranId } = req.params;
-        const { nis, namaSiswa, tanggalLahir, kelasId, nilai, pelajaranId, nilaiKriteria } = req.body;
+        const { nis, namaSiswa, tanggalLahir, kelasId } = req.body;
         const siswas = await addSiswa({
             nis,
             namaSiswa,
             tanggalLahir,
             kelasId,
-            nilai,
-            pelajaranId,
             tahunAjaranId,
-            nilaiKriteria,
         });
 
         res.status(200).json({ message: 'Data siswa berhasil ditambah', data: siswas });
@@ -34,17 +30,12 @@ export const createSiswa = async (req, res) => {
 export const modifySiswa = async (req, res) => {
     try {
         const { id } = req.params;
-        const { nis, namaSiswa, tanggalLahir, kelasId, nilai, pelajaranId, nilaiKriteria, eskulId } = req.body;
+        const { nis, namaSiswa, tanggalLahir, kelasId } = req.body;
         const updatedSiswa = await updateSiswa(id, {
             nis,
             namaSiswa,
             tanggalLahir,
             kelasId,
-            nilai,
-            pelajaranId,
-            tahunAjaranId: req.body.tahunAjaranId,
-            nilaiKriteria,
-            eskulId,
         });
         res.status(200).json({ message: 'Data berhasil dirubah', data: updatedSiswa });
     } catch (error) {
@@ -100,18 +91,6 @@ export const seeAllSiswaByTahunAjaranAndKelas = async (req, res) => {
         const siswas = await getSiswaByTahunAjaranAndKelas({ tahunAjaranId, kelasId });
         res.status(200).json({
             message: 'Berhasil ambil data siswa by tahun ajaran dan kelas',
-            data: siswas,
-        });
-    } catch (error) {
-        res.status(400).json({ message: error.message });
-    }
-};
-
-export const seeAllSiswaByKehadiran = async (req, res) => {
-    try {
-        const siswas = await getSiswaWithKehadiran();
-        res.status(200).json({
-            message: 'Berhasil ambil data siswa by kehadiran',
             data: siswas,
         });
     } catch (error) {

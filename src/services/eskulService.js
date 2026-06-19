@@ -1,6 +1,6 @@
 import prisma from '../config/prisma.js';
 
-export const addEskul = async ({ namaEskul }) => {
+export const addEskul = async ({ namaEskul, deskripsi }) => {
     if (!namaEskul) {
         throw new Error('Nama Eskul Wajib Di Isi');
     }
@@ -15,34 +15,13 @@ export const addEskul = async ({ namaEskul }) => {
 
     const newEskul = await prisma.eskul.create({
         data: {
-            namaEskul: namaEskul,
+            namaEskul,
+            deskripsi,
         },
     });
 
-    const tahunAjaranAktif = await prisma.tahunAjaran.findFirst({
-        where: { status: 'Aktif' },
-    });
-
-    if (tahunAjaranAktif) {
-        const allSiswa = await prisma.siswa.findMany({
-            where: {
-                tahunAjaranId: tahunAjaranAktif.id,
-            },
-            select: {
-                id: true,
-            },
-        });
-        if (allSiswa.length > 0) {
-            await prisma.nilaiEskul.createMany({
-                data: allSiswa.map((siswa) => ({
-                    siswaId: siswa.id,
-                    eskulId: newEskul.id,
-                    tahunAjaranId: tahunAjaranAktif.id,
-                    nilai: 0,
-                })),
-            });
-        }
-    }
+    // tidak lagi auto-create NilaiEskulRekap untuk semua siswa saat eskul dibuat
+    // NilaiEskulRekap dibuat manual saat siswa didaftarkan ke eskul tertentu
 
     return newEskul;
 };
@@ -52,13 +31,14 @@ export const getAllEskul = async () => {
         select: {
             id: true,
             namaEskul: true,
+            deskripsi: true,
         },
     });
 
     return result;
 };
 
-export const updateEskul = async ({ id, namaEskul }) => {
+export const updateEskul = async ({ id, namaEskul, deskripsi }) => {
     const existingEskul = await prisma.eskul.findUnique({
         where: { id },
     });
@@ -69,7 +49,7 @@ export const updateEskul = async ({ id, namaEskul }) => {
 
     if (namaEskul) {
         const existing = await prisma.eskul.findFirst({
-            where: { namaEskul },
+            where: { namaEskul, NOT: { id } },
         });
         if (existing) {
             throw new Error('Nama sudah ada');
@@ -78,34 +58,27 @@ export const updateEskul = async ({ id, namaEskul }) => {
 
     const data = {};
     if (namaEskul) data.namaEskul = namaEskul;
+    if (deskripsi !== undefined) data.deskripsi = deskripsi;
 
-    const updateEskul = await prisma.eskul.update({
+    const updatedEskul = await prisma.eskul.update({
         where: { id },
         data,
         select: {
             id: true,
             namaEskul: true,
+            deskripsi: true,
         },
     });
 
-    return updateEskul;
+    return updatedEskul;
 };
 
 export const deleteEskul = async (id) => {
     const existingEskul = await prisma.eskul.findUnique({ where: { id } });
     if (!existingEskul) throw new Error('Eskul tidak ditemukan');
 
-    await prisma.jadwalEskul.deleteMany({ where: { eskulId: id } });
-
-    await prisma.absensiEskul.deleteMany({
-        where: { pertemuanEskul: { eskulId: id } },
-    });
-    await prisma.pertemuanEskul.deleteMany({ where: { eskulId: id } });
-
-    await prisma.absensiEskul.deleteMany({
-        where: { NilaiEskul: { eskulId: id } },
-    });
-    await prisma.nilaiEskul.deleteMany({ where: { eskulId: id } });
+    // hapus semua rekap eskul sebelum delete
+    await prisma.nilaiEskulRekap.deleteMany({ where: { eskulId: id } });
 
     const remove = await prisma.eskul.delete({ where: { id } });
     return remove;

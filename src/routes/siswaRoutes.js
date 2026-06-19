@@ -7,7 +7,6 @@ import {
     removeSiswa,
     seeAllSiswaByTahunAjaran,
     seeAllSiswaByTahunAjaranAndKelas,
-    seeAllSiswaByKehadiran,
     seeAllSiswaByEskul,
 } from '../controllers/siswaController.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
@@ -21,7 +20,6 @@ router.put('/update/:id', authMiddleware, authorizeRole('Admin', 'Guru', 'WaliKe
 router.get('/tahun-ajaran/:tahunAjaranId', seeAllSiswaByTahunAjaran);
 router.get('/tahun-ajaran/:tahunAjaranId/:kelasId', seeAllSiswaByTahunAjaranAndKelas);
 
-router.get('/kehadiran', authMiddleware, authorizeRole('Admin', 'Guru', 'WaliKelas'), seeAllSiswaByKehadiran);
 router.get(
     '/siswa-eskul/:eskulId',
     authMiddleware,

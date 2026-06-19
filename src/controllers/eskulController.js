@@ -2,8 +2,8 @@ import { addEskul, deleteEskul, getAllEskul, updateEskul } from '../services/esk
 
 export const createEskul = async (req, res) => {
     try {
-        const { namaEskul } = req.body;
-        const result = await addEskul({ namaEskul });
+        const { namaEskul, deskripsi } = req.body;
+        const result = await addEskul({ namaEskul, deskripsi });
         res.status(200).json({
             message: 'Berhasil Menambahkan Eskul',
             data: result,
@@ -32,8 +32,8 @@ export const seeAllEskul = async (req, res) => {
 export const modifyEskul = async (req, res) => {
     try {
         const { id } = req.params;
-        const { namaEskul } = req.body;
-        const result = await updateEskul({ id, namaEskul });
+        const { namaEskul, deskripsi } = req.body;
+        const result = await updateEskul({ id, namaEskul, deskripsi });
         res.status(200).json({
             message: 'Berhasil Merubah Data Eskul',
             data: result,
