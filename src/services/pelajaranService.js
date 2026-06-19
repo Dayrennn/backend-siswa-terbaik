@@ -22,20 +22,17 @@ export const addPelajaran = async ({ namaPelajaran, kodePelajaran }) => {
 
     if (tahunAjaranAktif) {
         const allSiswa = await prisma.siswa.findMany({
-            where: {
-                tahunAjaranId: tahunAjaranAktif.id,
-            },
-            select: {
-                id: true,
-            },
+            where: { tahunAjaranId: tahunAjaranAktif.id, NOT: { kelasId: null } },
+            select: { id: true, kelasId: true },
         });
         if (allSiswa.length > 0) {
-            await prisma.nilai.createMany({
+            await prisma.nilaiRekap.createMany({
                 data: allSiswa.map((siswa) => ({
                     siswaId: siswa.id,
                     pelajaranId: newPelajaran.id,
                     tahunAjaranId: tahunAjaranAktif.id,
-                    nilai: 0,
+                    kelasId: siswa.kelasId,
+                    nilaiAkhir: 0,
                 })),
                 skipDuplicates: true,
             });
@@ -85,7 +82,7 @@ export const getAllPelajaran = async () => {
             id: true,
             namaPelajaran: true,
             kodePelajaran: true,
-            user: {
+            guru: {
                 select: {
                     id: true,
                     username: true,

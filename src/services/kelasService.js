@@ -92,26 +92,27 @@ export const getOneKelas = async (id) => {
 };
 
 export const deleteKelas = async (id) => {
-    await prisma.nilaiAkademik.deleteMany({
-        where: { kelasId: id }
-    });
-    await prisma.kehadiran.deleteMany({
-        where: { kelasId: id }
-    });
-    await prisma.pertemuan.deleteMany({
-        where: { kelasId: id }
-    });
-    await prisma.jadwal.deleteMany({
-        where: { kelasId: id }
-    });
-    await prisma.siswa.updateMany({
-        where: { kelasId: id },
-        data: { kelasId: null }
-    });
-    const removeKelas = await prisma.kelas.delete({
-        where: { id }
-    });
-    return removeKelas
+    // ambil semua siswa di kelas ini
+    const siswaList = await prisma.siswa.findMany({ where: { kelasId: id }, select: { id: true } });
+    const siswaIds = siswaList.map((s) => s.id);
+
+    if (siswaIds.length > 0) {
+        await prisma.nilaiKriteria.deleteMany({ where: { siswaId: { in: siswaIds } } });
+        await prisma.ranking.deleteMany({ where: { siswaId: { in: siswaIds } } });
+        await prisma.poinPlus.deleteMany({ where: { siswaId: { in: siswaIds } } });
+        await prisma.poinMinus.deleteMany({ where: { siswaId: { in: siswaIds } } });
+        await prisma.hafalan.deleteMany({ where: { siswaId: { in: siswaIds } } });
+    }
+
+    // hapus rekap yang mengacu ke kelas ini
+    await prisma.nilaiRekap.deleteMany({ where: { kelasId: id } });
+    await prisma.absenRekap.deleteMany({ where: { kelasId: id } });
+    await prisma.nilaiEskulRekap.deleteMany({ where: { kelasId: id } });
+
+    await prisma.siswa.updateMany({ where: { kelasId: id }, data: { kelasId: null } });
+
+    const removeKelas = await prisma.kelas.delete({ where: { id } });
+    return removeKelas;
 };
 
 export const getKelasByTahunAjaran = async (tahunAjaranId) => {
