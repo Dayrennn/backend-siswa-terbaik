@@ -109,7 +109,7 @@ model User {
   isVerified Boolean @default(false)
 
   // Relasi
-  kelasWali Kelas[]
+  waliKelas Kelas[]
   pelajaran Pelajaran[]
   otps      Otp[]
 }

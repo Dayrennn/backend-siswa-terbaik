@@ -179,7 +179,7 @@ export const updateUser = async (
             telephone: true,
             role: true,
             pelajaran: true,
-            kelas: true,
+            waliKelas: true,
         },
     });
 
@@ -197,7 +197,7 @@ export const getAllUser = async () => {
             role: true,
             pelajaran: true,
             isVerified: true,
-            kelas: true,
+            waliKelas: true,
         },
     });
 
@@ -216,7 +216,7 @@ export const getOneUser = async (id) => {
             role: true,
             pelajaran: true,
             isVerified: true,
-            kelas: true,
+            waliKelas: true,
         },
     });
 
@@ -237,7 +237,7 @@ export const getWaliKelas = async () => {
             id: true,
             username: true,
             telephone: true,
-            kelas: true,
+            waliKelas: true,
             pelajaran: true,
             isVerified: true,
         },
@@ -253,7 +253,7 @@ export const getWaliKelasByKelas = async (kelasId) => {
             id: true,
             username: true,
             telephone: true,
-            kelas: true,
+            waliKelas: true,
             pelajaran: true,
             isVerified: true,
         },

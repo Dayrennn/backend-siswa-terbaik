@@ -26,7 +26,7 @@ export const addSiswa = async ({ nis, namaSiswa, tanggalLahir, kelasId, tahunAja
 };
 
 // update siswa
-export const updateSiswa = async (id, { nis, namaSiswa, tanggalLahir, kelasId }) => {
+export const updateSiswa = async (id, { nis, namaSiswa, tanggalLahir, kelasId, tahunAjaranId }) => {
     const existingSiswa = await prisma.siswa.findUnique({
         where: { id },
     });
@@ -48,6 +48,7 @@ export const updateSiswa = async (id, { nis, namaSiswa, tanggalLahir, kelasId })
     if (namaSiswa) data.namaSiswa = namaSiswa;
     if (tanggalLahir) data.tanggalLahir = new Date(tanggalLahir);
     if (kelasId) data.kelas = { connect: { id: kelasId } };
+    if (tahunAjaranId) data.tahunAjaran = { connect: { id: tahunAjaranId } };
 
     const updatedSiswa = await prisma.siswa.update({
         where: { id },
@@ -146,13 +147,12 @@ export const getOneSiswa = async (id) => {
     if (!siswa) return null;
 
     const totalNilaiRekap = siswa.nilaiRekap.reduce((sum, n) => sum + n.nilaiAkhir, 0);
-    const rataRataNilai =
-        siswa.nilaiRekap.length > 0 ? totalNilaiRekap / siswa.nilaiRekap.length : 0;
+    const rataRataNilai = siswa.nilaiRekap.length > 0 ? totalNilaiRekap / siswa.nilaiRekap.length : 0;
 
     const totalBobot = siswa.nilaiKriteria.reduce((sum, nk) => sum + nk.kriteria.bobot, 0);
     const totalNilaiKriteriaBerbobot = siswa.nilaiKriteria.reduce(
         (sum, nk) => sum + nk.nilaiNormalisasi * nk.kriteria.bobot,
-        0
+        0,
     );
     const rataRataNilaiKriteria = totalBobot > 0 ? totalNilaiKriteriaBerbobot / totalBobot : 0;
 
@@ -166,13 +166,11 @@ export const getOneSiswa = async (id) => {
             acc.alpha += a.totalAlpha;
             return acc;
         },
-        { totalPertemuan: 0, hadir: 0, sakit: 0, izin: 0, alpha: 0 }
+        { totalPertemuan: 0, hadir: 0, sakit: 0, izin: 0, alpha: 0 },
     );
 
     const persentaseHadir =
-        rekapKehadiran.totalPertemuan > 0
-            ? (rekapKehadiran.hadir / rekapKehadiran.totalPertemuan) * 100
-            : 0;
+        rekapKehadiran.totalPertemuan > 0 ? (rekapKehadiran.hadir / rekapKehadiran.totalPertemuan) * 100 : 0;
 
     return {
         ...siswa,
