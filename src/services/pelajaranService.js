@@ -36,6 +36,20 @@ export const addPelajaran = async ({ namaPelajaran, kodePelajaran }) => {
                 })),
                 skipDuplicates: true,
             });
+            await prisma.absenRekap.createMany({
+                data: allSiswa.map((siswa) => ({
+                    siswaId: siswa.id,
+                    pelajaranId: newPelajaran.id,
+                    tahunAjaranId: tahunAjaranAktif.id,
+                    kelasId: siswa.kelasId,
+                    totalPertemuan: 0,
+                    totalHadir: 0,
+                    totalSakit: 0,
+                    totalIzin: 0,
+                    totalAlpha: 0,
+                })),
+                skipDuplicates: true,
+            });
         }
     }
 

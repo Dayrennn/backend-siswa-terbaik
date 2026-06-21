@@ -22,6 +22,27 @@ export const addSiswa = async ({ nis, namaSiswa, tanggalLahir, kelasId, tahunAja
         },
     });
 
+    const allPelajaran = await prisma.pelajaran.findMany({
+        select: { id: true },
+    });
+
+    if (allPelajaran.length > 0 && kelasId) {
+        await prisma.absenRekap.createMany({
+            data: allPelajaran.map((p) => ({
+                siswaId: newSiswa.id,
+                pelajaranId: p.id,
+                tahunAjaranId,
+                kelasId,
+                totalPertemuan: 0,
+                totalHadir: 0,
+                totalSakit: 0,
+                totalIzin: 0,
+                totalAlpha: 0,
+            })),
+            skipDuplicates: true,
+        });
+    }
+
     return newSiswa;
 };
 
@@ -63,6 +84,9 @@ export const getAllSiswa = async () => {
         include: {
             tahunAjaran: true,
             kelas: true,
+            absenRekap: {
+                include: { pelajaran: true },
+            },
             nilaiRekap: {
                 include: { pelajaran: true },
             },
