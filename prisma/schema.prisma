@@ -94,6 +94,7 @@ model Eskul {
 
   // Relasi
   nilaiEskulRekap NilaiEskulRekap[]
+  siswa Siswa[]
 }
 
 // ============================================================
@@ -140,11 +141,13 @@ model Siswa {
   namaSiswa     String
   tanggalLahir  DateTime
   kelasId       String?
+  eskulId       String?
   tahunAjaranId String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   // Relasi
+  eskul Eskul? @relation(fields: [eskulId], references: [id])
   kelas           Kelas?            @relation(fields: [kelasId], references: [id])
   tahunAjaran     TahunAjaran?      @relation(fields: [tahunAjaranId], references: [id])
   nilaiRekap      NilaiRekap[]

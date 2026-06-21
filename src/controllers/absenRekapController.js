@@ -16,7 +16,7 @@ export const simpanAbsenRekap = async (req, res) => {
         });
 
         res.status(200).json({
-            message: 'Berhasil Simpan Data Nilai',
+            message: 'Berhasil Simpan Data Absen',
             data: result,
         });
     } catch (error) {

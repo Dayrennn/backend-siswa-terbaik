@@ -11,6 +11,7 @@ import poinMinusRoutes from '../routes/poinMinusRoutes.js';
 import eskulRoutes from '../routes/eskulRoutes.js';
 import nilaiEskul from '../routes/nilaiEskulRoutes.js';
 import absenRoutes from '../routes/absenRekapRoutes.js';
+import nilaiRoutes from '../routes/nilaiRekapRoutes.js';
 import morgan from 'morgan';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -37,6 +38,7 @@ app.use('/poin-minus', poinMinusRoutes);
 app.use('/eskul', eskulRoutes);
 app.use('/nilai-eskul', nilaiEskul);
 app.use('/absen', absenRoutes);
+app.use('/nilai', nilaiRoutes);
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);

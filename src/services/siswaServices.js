@@ -41,6 +41,16 @@ export const addSiswa = async ({ nis, namaSiswa, tanggalLahir, kelasId, tahunAja
             })),
             skipDuplicates: true,
         });
+        await prisma.nilaiRekap.createMany({
+            data: allPelajaran.map((p) => ({
+                siswaId: newSiswa.id,
+                pelajaranId: p.id,
+                tahunAjaranId,
+                kelasId,
+                nilaiAkhir: 0,
+            })),
+            skipDuplicates: true,
+        });
     }
 
     return newSiswa;

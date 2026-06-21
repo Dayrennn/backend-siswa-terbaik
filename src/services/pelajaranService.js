@@ -11,46 +11,42 @@ export const addPelajaran = async ({ namaPelajaran, kodePelajaran }) => {
 
     const newPelajaran = await prisma.pelajaran.create({
         data: {
-            namaPelajaran: namaPelajaran,
-            kodePelajaran: kodePelajaran,
+            namaPelajaran,
+            kodePelajaran,
         },
     });
 
-    const tahunAjaranAktif = await prisma.tahunAjaran.findFirst({
-        where: { status: 'Aktif' },
+    const allSiswa = await prisma.siswa.findMany({
+        where: { NOT: { kelasId: null } },
+        select: { id: true, kelasId: true, tahunAjaranId: true },
     });
 
-    if (tahunAjaranAktif) {
-        const allSiswa = await prisma.siswa.findMany({
-            where: { tahunAjaranId: tahunAjaranAktif.id, NOT: { kelasId: null } },
-            select: { id: true, kelasId: true },
+    if (allSiswa.length > 0) {
+        await prisma.nilaiRekap.createMany({
+            data: allSiswa.map((siswa) => ({
+                siswaId: siswa.id,
+                pelajaranId: newPelajaran.id,
+                tahunAjaranId: siswa.tahunAjaranId,
+                kelasId: siswa.kelasId,
+                nilaiAkhir: 0,
+            })),
+            skipDuplicates: true,
         });
-        if (allSiswa.length > 0) {
-            await prisma.nilaiRekap.createMany({
-                data: allSiswa.map((siswa) => ({
-                    siswaId: siswa.id,
-                    pelajaranId: newPelajaran.id,
-                    tahunAjaranId: tahunAjaranAktif.id,
-                    kelasId: siswa.kelasId,
-                    nilaiAkhir: 0,
-                })),
-                skipDuplicates: true,
-            });
-            await prisma.absenRekap.createMany({
-                data: allSiswa.map((siswa) => ({
-                    siswaId: siswa.id,
-                    pelajaranId: newPelajaran.id,
-                    tahunAjaranId: tahunAjaranAktif.id,
-                    kelasId: siswa.kelasId,
-                    totalPertemuan: 0,
-                    totalHadir: 0,
-                    totalSakit: 0,
-                    totalIzin: 0,
-                    totalAlpha: 0,
-                })),
-                skipDuplicates: true,
-            });
-        }
+
+        await prisma.absenRekap.createMany({
+            data: allSiswa.map((siswa) => ({
+                siswaId: siswa.id,
+                pelajaranId: newPelajaran.id,
+                tahunAjaranId: siswa.tahunAjaranId,
+                kelasId: siswa.kelasId,
+                totalPertemuan: 0,
+                totalHadir: 0,
+                totalSakit: 0,
+                totalIzin: 0,
+                totalAlpha: 0,
+            })),
+            skipDuplicates: true,
+        });
     }
 
     return newPelajaran;
