@@ -8,6 +8,7 @@ import {
     deleteUser,
     getWaliKelas,
     getWaliKelasByKelas,
+    getAllGuru,
 } from '../services/userServices.js';
 import { generateToken } from '../utils/jwt.js';
 
@@ -159,5 +160,17 @@ export const getWaliKelasByKelasId = async (req, res) => {
         });
     } catch (error) {
         res.status(400).json({ message: error.message });
+    }
+};
+
+export const seeAllGuru = async (req, res) => {
+    try {
+        const guru = await getAllGuru();
+        res.status(200).json({
+            message: 'Berhasil mengambil data guru',
+            data: guru,
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 };

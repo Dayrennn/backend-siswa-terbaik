@@ -42,7 +42,7 @@ export const addPelajaran = async ({ namaPelajaran, kodePelajaran }) => {
     return newPelajaran;
 };
 
-export const updatePelajaran = async (id, { namaPelajaran, kodePelajaran }) => {
+export const updatePelajaran = async (id, { namaPelajaran, kodePelajaran, guruId }) => {
     const existingPelajaran = await prisma.pelajaran.findUnique({
         where: { id },
     });
@@ -62,6 +62,7 @@ export const updatePelajaran = async (id, { namaPelajaran, kodePelajaran }) => {
     const data = {};
     if (namaPelajaran) data.namaPelajaran = namaPelajaran;
     if (kodePelajaran) data.kodePelajaran = kodePelajaran;
+    if (guruId) data.guruId = guruId;
 
     const updatePelajaran = await prisma.pelajaran.update({
         where: { id },
@@ -70,6 +71,7 @@ export const updatePelajaran = async (id, { namaPelajaran, kodePelajaran }) => {
             id: true,
             namaPelajaran: true,
             kodePelajaran: true,
+            guruId: true,
         },
     });
 

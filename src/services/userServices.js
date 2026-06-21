@@ -103,10 +103,7 @@ export const loginUser = async ({ email, password }) => {
 };
 
 // update
-export const updateUser = async (
-    id,
-    { username, email, telephone, password, role, pelajaranId, kelasId },
-) => {
+export const updateUser = async (id, { username, email, telephone, password, role, pelajaranId, kelasId }) => {
     // cek user
     const existingUser = await prisma.user.findUnique({
         where: {
@@ -123,9 +120,7 @@ export const updateUser = async (
     if (username || email) {
         const existing = await prisma.user.findFirst({
             where: {
-                OR: [username ? { username } : undefined, email ? { email } : undefined].filter(
-                    Boolean,
-                ),
+                OR: [username ? { username } : undefined, email ? { email } : undefined].filter(Boolean),
                 NOT: { id },
             },
         });
@@ -248,7 +243,7 @@ export const getWaliKelas = async () => {
 
 export const getWaliKelasByKelas = async (kelasId) => {
     const waliKelas = await prisma.user.findFirst({
-        where: { role: "WaliKelas", kelasId },
+        where: { role: 'WaliKelas', kelasId },
         select: {
             id: true,
             username: true,
@@ -260,4 +255,20 @@ export const getWaliKelasByKelas = async (kelasId) => {
     });
 
     return waliKelas;
+};
+
+export const getAllGuru = async () => {
+    const guru = await prisma.user.findFirst({
+        where: { role: 'Guru' },
+        select: {
+            id: true,
+            username: true,
+            telephone: true,
+            waliKelas: true,
+            pelajaran: true,
+            isVerified: true,
+        },
+    });
+
+    return guru;
 };

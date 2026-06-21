@@ -11,6 +11,7 @@ import {
     removeUser,
     getAllWaliKelas,
     getWaliKelasByKelasId,
+    seeAllGuru,
 } from '../controllers/userControllers.js';
 import { authorizeRole } from '../middleware/authorizeRoleMiddleware.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
@@ -25,8 +26,9 @@ router.put('/users/:id', authMiddleware, authorizeRole('Admin'), update);
 
 router.get('/users', authMiddleware, authorizeRole('Admin'), getUsers);
 router.get('/users/:id', authMiddleware, authorizeRole('Admin'), getUserById);
-router.get('/waliKelas', authMiddleware, getAllWaliKelas)
-router.get('/waliKelas/:kelasId', authMiddleware, getWaliKelasByKelasId)
+router.get('/guru', authMiddleware, seeAllGuru);
+router.get('/waliKelas', authMiddleware, getAllWaliKelas);
+router.get('/waliKelas/:kelasId', authMiddleware, getWaliKelasByKelasId);
 router.delete('/users/:id', authMiddleware, authorizeRole('Admin'), removeUser);
 
 router.get('/me', authMiddleware, getMe);

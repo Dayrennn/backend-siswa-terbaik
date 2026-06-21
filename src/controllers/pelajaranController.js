@@ -19,10 +19,11 @@ export const createPelajaran = async (req, res) => {
 export const modifyPelajaran = async (req, res) => {
     try {
         const { id } = req.params;
-        const { namaPelajaran, kodePelajaran } = req.body;
+        const { namaPelajaran, kodePelajaran, guruId } = req.body;
         const updatedPelajaran = await updatePelajaran(id, {
             namaPelajaran,
             kodePelajaran,
+            guruId,
         });
         res.status(200).json({ message: 'Data berhasil disimpan', data: updatedPelajaran });
     } catch (error) {
