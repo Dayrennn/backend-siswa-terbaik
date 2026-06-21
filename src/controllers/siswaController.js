@@ -29,13 +29,14 @@ export const createSiswa = async (req, res) => {
 export const modifySiswa = async (req, res) => {
     try {
         const { id } = req.params;
-        const { nis, namaSiswa, tanggalLahir, kelasId, tahunAjaranId } = req.body;
+        const { nis, namaSiswa, tanggalLahir, kelasId, tahunAjaranId, eskulId } = req.body;
         const updatedSiswa = await updateSiswa(id, {
             nis,
             namaSiswa,
             tanggalLahir,
             kelasId,
             tahunAjaranId,
+            eskulId
         });
         res.status(200).json({ message: 'Data berhasil dirubah', data: updatedSiswa });
     } catch (error) {

@@ -57,7 +57,7 @@ export const addSiswa = async ({ nis, namaSiswa, tanggalLahir, kelasId, tahunAja
 };
 
 // update siswa
-export const updateSiswa = async (id, { nis, namaSiswa, tanggalLahir, kelasId, tahunAjaranId }) => {
+export const updateSiswa = async (id, { nis, namaSiswa, tanggalLahir, kelasId, tahunAjaranId, eskulId }) => {
     const existingSiswa = await prisma.siswa.findUnique({
         where: { id },
     });
@@ -80,6 +80,7 @@ export const updateSiswa = async (id, { nis, namaSiswa, tanggalLahir, kelasId, t
     if (tanggalLahir) data.tanggalLahir = new Date(tanggalLahir);
     if (kelasId) data.kelas = { connect: { id: kelasId } };
     if (tahunAjaranId) data.tahunAjaran = { connect: { id: tahunAjaranId } };
+    if (eskulId) data.eskul = { connect: { id: eskulId } }
 
     const updatedSiswa = await prisma.siswa.update({
         where: { id },
