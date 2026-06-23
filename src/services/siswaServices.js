@@ -189,7 +189,6 @@ export const getOneSiswa = async (id) => {
                 nilaiKriteria: {
                     include: { kriteria: true },
                 },
-                hafalan: true,
                 poinPlus: {
                     select: { id: true, siswaId: true, deskripsi: true, poin: true, tanggal: true },
                 },
