@@ -3,12 +3,11 @@ import { inputNilaiEskul } from '../services/nilaiEskulService.js';
 export const inputNilaiEskulController = async (req, res) => {
     try {
         const { siswaId, eskulId } = req.params;
-        const { kelasId, nilaiAkhir, totalPertemuan, totalHadir, totalIzin, totalSakit, totalAlpha } = req.body;
+        const { nilaiPerforma, totalHadir, totalIzin, totalSakit, totalAlpha } = req.body;
         const result = await inputNilaiEskul({
             siswaId,
             eskulId,
-            nilaiAkhir,
-            totalPertemuan,
+            nilaiPerforma,
             totalHadir,
             totalIzin,
             totalSakit,

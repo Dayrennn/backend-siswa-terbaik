@@ -231,6 +231,7 @@ model NilaiEskulRekap {
   kelasId       String
 
   nilaiAkhir     Float? // nilai akhir eskul (opsional)
+  nilaiPerforma  Float?
   totalPertemuan Int    @default(0)
   totalHadir     Int    @default(0)
   totalIzin      Int    @default(0)

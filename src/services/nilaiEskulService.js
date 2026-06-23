@@ -4,8 +4,7 @@ import { getKeterangan } from '../helper/nilaiKeterangan.js';
 export const inputNilaiEskul = async ({
     siswaId,
     eskulId,
-    nilaiAkhir,
-    totalPertemuan,
+    nilaiPerforma,
     totalHadir,
     totalIzin,
     totalSakit,
@@ -22,6 +21,16 @@ export const inputNilaiEskul = async ({
     if (!siswa.kelasId) throw new Error('Siswa tidak memiliki kelas');
     if (!siswa.tahunAjaranId) throw new Error('Siswa tidak memiliki tahun ajaran');
 
+    const totalPertemuan = totalHadir + totalIzin + totalSakit + totalAlpha;
+
+    const nilaiKehadiran = totalPertemuan > 0
+        ? ((totalHadir + totalIzin * 0.5 + totalSakit * 0.5) / totalPertemuan) * 100
+        : 0;
+
+    const nilaiAkhir = parseFloat(
+        ((0.4 * nilaiKehadiran) + (0.6 * (nilaiPerforma ?? 0))).toFixed(2)
+    );
+
     const keterangan = getKeterangan(nilaiAkhir);
 
     const nilairekap = await prisma.nilaiEskulRekap.upsert({
@@ -32,13 +41,14 @@ export const inputNilaiEskul = async ({
                 tahunAjaranId: siswa.tahunAjaranId,
             },
         },
-        update: { nilaiAkhir, totalPertemuan, totalHadir, totalIzin, totalAlpha, totalSakit },
+        update: { nilaiAkhir, totalPertemuan, totalHadir, totalIzin, totalAlpha, totalSakit, nilaiPerforma },
         create: {
             siswaId,
             eskulId,
             tahunAjaranId: siswa.tahunAjaranId,
             kelasId: siswa.kelasId,
             nilaiAkhir,
+            nilaiPerforma,
             totalPertemuan,
             totalHadir,
             totalIzin,
