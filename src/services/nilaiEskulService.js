@@ -23,13 +23,10 @@ export const inputNilaiEskul = async ({
 
     const totalPertemuan = totalHadir + totalIzin + totalSakit + totalAlpha;
 
-    const nilaiKehadiran = totalPertemuan > 0
-        ? ((totalHadir + totalIzin * 0.5 + totalSakit * 0.5) / totalPertemuan) * 100
-        : 0;
+    const nilaiKehadiran =
+        totalPertemuan > 0 ? ((totalHadir + totalIzin * 0.5 + totalSakit * 0.5) / totalPertemuan) * 100 : 0;
 
-    const nilaiAkhir = parseFloat(
-        ((0.4 * nilaiKehadiran) + (0.6 * (nilaiPerforma ?? 0))).toFixed(2)
-    );
+    const nilaiAkhir = parseFloat((0.4 * nilaiKehadiran + 0.6 * (nilaiPerforma ?? 0)).toFixed(2));
 
     const keterangan = getKeterangan(nilaiAkhir);
 
@@ -41,7 +38,16 @@ export const inputNilaiEskul = async ({
                 tahunAjaranId: siswa.tahunAjaranId,
             },
         },
-        update: { nilaiAkhir, totalPertemuan, totalHadir, totalIzin, totalAlpha, totalSakit, nilaiPerforma },
+        update: {
+            nilaiAkhir,
+            totalPertemuan,
+            totalHadir,
+            totalIzin,
+            totalAlpha,
+            totalSakit,
+            nilaiPerforma,
+            keterangan,
+        },
         create: {
             siswaId,
             eskulId,
@@ -54,6 +60,7 @@ export const inputNilaiEskul = async ({
             totalIzin,
             totalSakit,
             totalAlpha,
+            keterangan,
         },
     });
 
