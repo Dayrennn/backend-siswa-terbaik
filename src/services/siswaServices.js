@@ -80,12 +80,38 @@ export const updateSiswa = async (id, { nis, namaSiswa, tanggalLahir, kelasId, t
     if (tanggalLahir) data.tanggalLahir = new Date(tanggalLahir);
     if (kelasId) data.kelas = { connect: { id: kelasId } };
     if (tahunAjaranId) data.tahunAjaran = { connect: { id: tahunAjaranId } };
-    if (eskulId) data.eskul = { connect: { id: eskulId } }
+    if (eskulId) data.eskul = { connect: { id: eskulId } };
 
     const updatedSiswa = await prisma.siswa.update({
         where: { id },
         data,
     });
+
+    if (eskulId) {
+        const targetKelasId = kelasId || existingSiswa.kelasId;
+        const targetTahunAjaranId = tahunAjaranId || existingSiswa.tahunAjaranId;
+
+        await prisma.nilaiEskulRekap.upsert({
+            where: {
+                siswaId_eskulId_tahunAjaranId: {
+                    siswaId: id,
+                    eskulId,
+                    tahunAjaranId: targetTahunAjaranId,
+                },
+            },
+            update: {},
+            create: {
+                siswaId: id,
+                eskulId,
+                tahunAjaranId: targetTahunAjaranId,
+                kelasId: targetKelasId,
+                nilaiAkhir: 0,
+                totalPertemuan: 0,
+                totalHadir: 0,
+                totalAlpha: 0,
+            },
+        });
+    }
 
     return updatedSiswa;
 };

@@ -1,55 +1,51 @@
 import prisma from '../config/prisma.js';
+import { getKeterangan } from '../helper/nilaiKeterangan.js';
 
-export const inputNilaiEskul = async ({ eskulId, nilaiSiswa, tahunAjaranId }) => {
-    const existingEskul = await prisma.eskul.findUnique({
-        where: { id: eskulId },
+export const inputNilaiEskul = async ({
+    siswaId,
+    eskulId,
+    nilaiAkhir,
+    totalPertemuan,
+    totalHadir,
+    totalIzin,
+    totalSakit,
+    totalAlpha,
+}) => {
+    const siswa = await prisma.siswa.findUnique({
+        where: { id: siswaId },
+        select: {
+            kelasId: true,
+            tahunAjaranId: true,
+        },
     });
-    if (!existingEskul) throw new Error('Eskul tidak ditemukan');
+    if (!siswa) throw new Error('Siswa tidak ditemukan');
+    if (!siswa.kelasId) throw new Error('Siswa tidak memiliki kelas');
+    if (!siswa.tahunAjaranId) throw new Error('Siswa tidak memiliki tahun ajaran');
 
-    const existingTahunAjaran = await prisma.tahunAjaran.findUnique({
-        where: { id: tahunAjaranId },
+    const keterangan = getKeterangan(nilaiAkhir);
+
+    const nilairekap = await prisma.nilaiEskulRekap.upsert({
+        where: {
+            siswaId_eskulId_tahunAjaranId: {
+                siswaId,
+                eskulId,
+                tahunAjaranId: siswa.tahunAjaranId,
+            },
+        },
+        update: { nilaiAkhir, totalPertemuan, totalHadir, totalIzin, totalAlpha, totalSakit },
+        create: {
+            siswaId,
+            eskulId,
+            tahunAjaranId: siswa.tahunAjaranId,
+            kelasId: siswa.kelasId,
+            nilaiAkhir,
+            totalPertemuan,
+            totalHadir,
+            totalIzin,
+            totalSakit,
+            totalAlpha,
+        },
     });
-    if (!existingTahunAjaran) throw new Error('Tahun ajaran tidak ditemukan');
 
-    // ambil semua siswa yang akan diupdate untuk dapatkan kelasId
-    const siswaIds = nilaiSiswa.map((n) => n.siswaId);
-    const siswaList = await prisma.siswa.findMany({
-        where: { id: { in: siswaIds } },
-        select: { id: true, kelasId: true },
-    });
-    const kelasMap = Object.fromEntries(siswaList.map((s) => [s.id, s.kelasId]));
-
-    const results = await Promise.all(
-        nilaiSiswa.map(async ({ siswaId, nilai }) => {
-            const kelasId = kelasMap[siswaId];
-            if (!kelasId) throw new Error(`Siswa ${siswaId} belum memiliki kelas, tidak dapat input nilai eskul`);
-
-            const res = await prisma.nilaiEskulRekap.upsert({
-                where: {
-                    siswaId_eskulId_tahunAjaranId: {
-                        siswaId,
-                        eskulId,
-                        tahunAjaranId,
-                    },
-                },
-                create: {
-                    siswaId,
-                    eskulId,
-                    tahunAjaranId,
-                    kelasId,
-                    nilaiAkhir: nilai,
-                },
-                update: { nilaiAkhir: nilai },
-                select: {
-                    id: true,
-                    nilaiAkhir: true,
-                    siswa: { select: { id: true, namaSiswa: true, nis: true } },
-                    eskul: { select: { id: true, namaEskul: true } },
-                },
-            });
-            return res;
-        }),
-    );
-
-    return results;
+    return nilairekap;
 };

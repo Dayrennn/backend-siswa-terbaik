@@ -5,6 +5,11 @@ import { inputNilaiEskulController } from '../controllers/nilaiEskulController.j
 
 const router = express.Router();
 
-router.post('/simpan', authMiddleware, authorizeRole('Admin', 'Guru', 'WaliKelas'), inputNilaiEskulController);
+router.post(
+    '/simpan/:siswaId/nilai-eskul/:eskulId',
+    authMiddleware,
+    authorizeRole('Admin', 'Guru', 'WaliKelas'),
+    inputNilaiEskulController,
+);
 
 export default router;

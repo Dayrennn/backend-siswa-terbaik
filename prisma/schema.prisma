@@ -233,6 +233,8 @@ model NilaiEskulRekap {
   nilaiAkhir     Float? // nilai akhir eskul (opsional)
   totalPertemuan Int    @default(0)
   totalHadir     Int    @default(0)
+  totalIzin      Int    @default(0)
+  totalSakit     Int    @default(0)
   totalAlpha     Int    @default(0)
 
   keterangan String?
