@@ -332,3 +332,41 @@ export const getSiswaByEskul = async ({ tahunAjaranId, eskulId }) => {
         nilaiEskulRekap: r,
     }));
 };
+
+export const getSiswaByHafalan = async () => {
+    const result = await prisma.siswa.findMany({
+        select: {
+            id: true,
+            namaSiswa: true,
+            kelas: {
+                select: {
+                    id: true,
+                    namaKelas: true,
+                    kodeKelas: true,
+                    tahunAjaran: {
+                        select: {
+                            id: true,
+                            namaTahunAjaran: true,
+                        },
+                    },
+                },
+            },
+            tahunAjaran: {
+                select: {
+                    id: true,
+                    namaTahunAjaran: true,
+                },
+            },
+            hafalan: {
+                select: {
+                    id: true,
+                    siswaId: true,
+                    jumlahJuz: true,
+                    keterangan: true,
+                },
+            },
+        },
+    });
+
+    return result;
+};

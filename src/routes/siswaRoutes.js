@@ -8,6 +8,7 @@ import {
     seeAllSiswaByTahunAjaran,
     seeAllSiswaByTahunAjaranAndKelas,
     seeAllSiswaByEskul,
+    seeAllSiswaHafalan,
 } from '../controllers/siswaController.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import { authorizeRole } from '../middleware/authorizeRoleMiddleware.js';
@@ -21,6 +22,7 @@ router.get('/tahun-ajaran/:tahunAjaranId', seeAllSiswaByTahunAjaran);
 router.get('/tahun-ajaran/:tahunAjaranId/:kelasId', seeAllSiswaByTahunAjaranAndKelas);
 
 router.get('/siswa-eskul/:eskulId', authMiddleware, authorizeRole('Admin', 'Guru', 'WaliKelas'), seeAllSiswaByEskul);
+router.get('/hafalan', authMiddleware, seeAllSiswaHafalan);
 
 router.get('/', seeAllSiswa);
 router.get('/:id', getSiswaById);

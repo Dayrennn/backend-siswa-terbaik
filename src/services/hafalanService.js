@@ -1,6 +1,7 @@
 import prisma from '../config/prisma.js';
+import { getKeteranganHafalan } from '../helper/nilaiKeterangan.js';
 
-export const inputHafalan = async ({ siswaId, jumlahJuz, keterangan }) => {
+export const inputHafalan = async ({ siswaId, jumlahJuz }) => {
     const siswa = await prisma.siswa.findUnique({
         where: { id: siswaId },
     });
@@ -8,6 +9,8 @@ export const inputHafalan = async ({ siswaId, jumlahJuz, keterangan }) => {
     if (!siswa) {
         throw new Error('Siswa tidak ditemukan');
     }
+
+    const keterangan = getKeteranganHafalan(jumlahJuz);
 
     const hafalanRekap = await prisma.hafalan.upsert({
         where: { siswaId },

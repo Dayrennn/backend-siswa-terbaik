@@ -4,6 +4,6 @@ import { simpanHafalan } from '../controllers/hafalanController.js';
 
 const router = express.Router();
 
-router.post('/simpan/:siswaId', authMiddleware, simpanHafalan);
+router.post('/simpan', authMiddleware, simpanHafalan);
 
 export default router;

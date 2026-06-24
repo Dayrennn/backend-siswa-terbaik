@@ -7,6 +7,7 @@ import {
     getSiswaByTahunAjaran,
     getSiswaByTahunAjaranAndKelas,
     getSiswaByEskul,
+    getSiswaByHafalan,
 } from '../services/siswaServices.js';
 
 export const createSiswa = async (req, res) => {
@@ -36,7 +37,7 @@ export const modifySiswa = async (req, res) => {
             tanggalLahir,
             kelasId,
             tahunAjaranId,
-            eskulId
+            eskulId,
         });
         res.status(200).json({ message: 'Data berhasil dirubah', data: updatedSiswa });
     } catch (error) {
@@ -107,6 +108,20 @@ export const seeAllSiswaByEskul = async (req, res) => {
         res.status(200).json({
             message: 'Berhasil ambil data siswa by eskul',
             data: siswas,
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: error.message,
+        });
+    }
+};
+
+export const seeAllSiswaHafalan = async (req, res) => {
+    try {
+        const result = await getSiswaByHafalan();
+        res.status(200).json({
+            message: 'Berhasil ambil data siswa by hafalan',
+            data: result,
         });
     } catch (error) {
         res.status(500).json({

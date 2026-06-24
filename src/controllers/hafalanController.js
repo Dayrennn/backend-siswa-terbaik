@@ -2,7 +2,7 @@ import { inputHafalan } from '../services/hafalanService.js';
 
 export const simpanHafalan = async (req, res) => {
     try {
-        const { siswaId } = req.params;
+        const { siswaId } = req.query;
         const { jumlahJuz, keterangan } = req.body;
         const result = await inputHafalan({ siswaId, jumlahJuz, keterangan });
         res.status(200).json({
