@@ -8,6 +8,8 @@ import {
     getSiswaByTahunAjaranAndKelas,
     getSiswaByEskul,
     getSiswaByHafalan,
+    getRankingAngkatan,
+    getRankingKelas,
 } from '../services/siswaServices.js';
 
 export const createSiswa = async (req, res) => {
@@ -121,6 +123,36 @@ export const seeAllSiswaHafalan = async (req, res) => {
         const result = await getSiswaByHafalan();
         res.status(200).json({
             message: 'Berhasil ambil data siswa by hafalan',
+            data: result,
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: error.message,
+        });
+    }
+};
+
+export const seeRankingAngkatan = async (req, res) => {
+    try {
+        const { tahunAjaranId } = req.params;
+        const result = await getRankingAngkatan(tahunAjaranId);
+        res.status(200).json({
+            message: 'Berhasil ambil ranking angkatan',
+            data: result,
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: error.message,
+        });
+    }
+};
+
+export const seeRankingKelas = async (req, res) => {
+    try {
+        const { tahunAjaranId, kelasId } = req.params;
+        const result = await getRankingKelas({ tahunAjaranId, kelasId });
+        res.status(200).json({
+            message: 'Berhasil ambil ranking kelas',
             data: result,
         });
     } catch (error) {

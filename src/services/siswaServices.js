@@ -1,4 +1,6 @@
 import prisma from '../config/prisma.js';
+import { hitungRingkasan } from '../helper/ringkasan.js';
+import { triggerHitungSMART } from './smartService.js';
 
 // tambah siswa
 export const addSiswa = async ({ nis, namaSiswa, tanggalLahir, kelasId, tahunAjaranId }) => {
@@ -113,6 +115,7 @@ export const updateSiswa = async (id, { nis, namaSiswa, tanggalLahir, kelasId, t
         });
     }
 
+    await triggerHitungSMART({ siswaId: id });
     return updatedSiswa;
 };
 
@@ -131,6 +134,10 @@ export const getAllSiswa = async () => {
             nilaiEskulRekap: {
                 include: { eskul: true },
             },
+            nilaiKriteria: {
+                include: { kriteria: true },
+            },
+            ranking: true,
             poinPlus: {
                 select: { id: true, siswaId: true, deskripsi: true, poin: true, tanggal: true },
                 orderBy: { tanggal: 'desc' },
@@ -169,6 +176,7 @@ export const getAllSiswa = async () => {
         ...s,
         totalPoinPlus: plusMap[s.id] ?? 0,
         totalPoinMinus: minusMap[s.id] ?? 0,
+        ringkasan: hitungRingkasan(s),
     }));
 };
 
@@ -179,6 +187,7 @@ export const getOneSiswa = async (id) => {
             include: {
                 kelas: true,
                 hafalan: true,
+                tahunAjaran: true,
                 nilaiRekap: {
                     include: { pelajaran: true },
                 },
@@ -191,6 +200,7 @@ export const getOneSiswa = async (id) => {
                 nilaiKriteria: {
                     include: { kriteria: true },
                 },
+                ranking: true,
                 poinPlus: {
                     select: { id: true, siswaId: true, deskripsi: true, poin: true, tanggal: true },
                 },
@@ -208,47 +218,23 @@ export const getOneSiswa = async (id) => {
 
     if (!siswa) return null;
 
-    const totalNilaiRekap = siswa.nilaiRekap.reduce((sum, n) => sum + n.nilaiAkhir, 0);
-    const rataRataNilai = siswa.nilaiRekap.length > 0 ? totalNilaiRekap / siswa.nilaiRekap.length : 0;
-
-    const totalBobot = siswa.nilaiKriteria.reduce((sum, nk) => sum + nk.kriteria.bobot, 0);
-    const totalNilaiKriteriaBerbobot = siswa.nilaiKriteria.reduce(
-        (sum, nk) => sum + nk.nilaiNormalisasi * nk.kriteria.bobot,
-        0,
-    );
-    const rataRataNilaiKriteria = totalBobot > 0 ? totalNilaiKriteriaBerbobot / totalBobot : 0;
-
-    // rekap kehadiran dari absenRekap (akumulasi semua pelajaran)
-    const rekapKehadiran = siswa.absenRekap.reduce(
-        (acc, a) => {
-            acc.totalPertemuan += a.totalPertemuan;
-            acc.hadir += a.totalHadir;
-            acc.sakit += a.totalSakit;
-            acc.izin += a.totalIzin;
-            acc.alpha += a.totalAlpha;
-            return acc;
-        },
-        { totalPertemuan: 0, hadir: 0, sakit: 0, izin: 0, alpha: 0 },
-    );
-
-    const persentaseHadir =
-        rekapKehadiran.totalPertemuan > 0 ? (rekapKehadiran.hadir / rekapKehadiran.totalPertemuan) * 100 : 0;
-
     return {
         ...siswa,
         totalPoinPlus: allPoinPlus._sum.poin ?? 0,
         totalPoinMinus: allPoinMinus._sum.poin ?? 0,
-        ringkasan: {
-            rataRataNilai: parseFloat(rataRataNilai.toFixed(2)),
-            rataRataNilaiKriteria: parseFloat(rataRataNilaiKriteria.toFixed(2)),
-            rekapKehadiran,
-            persentaseHadir: parseFloat(persentaseHadir.toFixed(2)),
-        },
+        ringkasan: hitungRingkasan(siswa),
     };
 };
 
 // delete siswa
 export const deleteSiswa = async (id) => {
+    const siswaRecord = await prisma.siswa.findUnique({
+        where: { id },
+        select: { tahunAjaranId: true },
+    });
+
+    const tahunAjaranId = siswaRecord?.tahunAjaranId;
+
     // hapus semua relasi sebelum delete siswa
     await Promise.all([
         prisma.nilaiRekap.deleteMany({ where: { siswaId: id } }),
@@ -264,6 +250,10 @@ export const deleteSiswa = async (id) => {
     const siswa = await prisma.siswa.delete({
         where: { id },
     });
+
+    if (tahunAjaranId) {
+        await triggerHitungSMART({ tahunAjaranId });
+    }
 
     return siswa;
 };
@@ -283,6 +273,7 @@ export const getSiswaByTahunAjaran = async (tahunAjaranId) => {
             nilaiKriteria: {
                 include: { kriteria: true },
             },
+            ranking: true,
         },
     });
     return siswas;
@@ -306,6 +297,7 @@ export const getSiswaByTahunAjaranAndKelas = async ({ tahunAjaranId, kelasId }) 
             nilaiKriteria: {
                 include: { kriteria: true },
             },
+            ranking: true,
         },
     });
     return siswas;
@@ -369,4 +361,38 @@ export const getSiswaByHafalan = async () => {
     });
 
     return result;
+};
+
+export const getRankingAngkatan = async (tahunAjaranId) => {
+    return prisma.ranking.findMany({
+        where: { tahunAjaranId, scope: 'ANGKATAN' },
+        orderBy: { peringkat: 'asc' },
+        include: {
+            siswa: {
+                include: {
+                    kelas: true,
+                    tahunAjaran: true,
+                },
+            },
+            kelas: true,
+            tahunAjaran: true,
+        },
+    });
+};
+
+export const getRankingKelas = async ({ tahunAjaranId, kelasId }) => {
+    return prisma.ranking.findMany({
+        where: { tahunAjaranId, kelasId, scope: 'KELAS' },
+        orderBy: { peringkat: 'asc' },
+        include: {
+            siswa: {
+                include: {
+                    kelas: true,
+                    tahunAjaran: true,
+                },
+            },
+            kelas: true,
+            tahunAjaran: true,
+        },
+    });
 };

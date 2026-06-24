@@ -1,5 +1,6 @@
 import prisma from '../config/prisma.js';
 import { getKeterangan } from '../helper/nilaiKeterangan.js';
+import { triggerHitungSMART } from './smartService.js';
 
 export const inputNilaiRekap = async ({ siswaId, pelajaranId, nilaiTugas, nilaiUH, nilaiUTS, nilaiUAS }) => {
     const siswa = await prisma.siswa.findUnique({
@@ -39,5 +40,6 @@ export const inputNilaiRekap = async ({ siswaId, pelajaranId, nilaiTugas, nilaiU
         },
     });
 
+    await triggerHitungSMART({ siswaId });
     return nilaiRekap;
 };

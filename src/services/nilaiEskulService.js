@@ -1,5 +1,6 @@
 import prisma from '../config/prisma.js';
 import { getKeterangan } from '../helper/nilaiKeterangan.js';
+import { triggerHitungSMART } from './smartService.js';
 
 export const inputNilaiEskul = async ({
     siswaId,
@@ -64,5 +65,6 @@ export const inputNilaiEskul = async ({
         },
     });
 
+    await triggerHitungSMART({ siswaId });
     return nilairekap;
 };

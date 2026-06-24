@@ -1,4 +1,5 @@
-import prisma from "../config/prisma.js";
+import prisma from '../config/prisma.js';
+import { triggerHitungSMART } from './smartService.js';
 
 export const inputAbsenRekap = async ({
     siswaId,

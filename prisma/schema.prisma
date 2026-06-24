@@ -35,6 +35,11 @@ enum JenisKriteria {
   cost    // semakin rendah semakin baik (alpha, poin minus)
 }
 
+enum RankingScope {
+  KELAS
+  ANGKATAN
+}
+
 // ============================================================
 //  MASTER DATA
 // ============================================================
@@ -73,6 +78,8 @@ model Kelas {
   nilaiRekap      NilaiRekap[]
   absenRekap      AbsenRekap[]
   nilaiEskulRekap NilaiEskulRekap[]
+  nilaiKriteria   NilaiKriteria[]
+  ranking         Ranking[]
 }
 
 model Pelajaran {
@@ -319,6 +326,8 @@ model NilaiKriteria {
   siswaId       String
   kriteriaId    String
   tahunAjaranId String
+  kelasId       String?
+  scope         RankingScope @default(ANGKATAN)
 
   nilaiRaw       Float  // nilai mentah sebelum normalisasi
   nilaiNormalisasi Float @default(0) // hasil normalisasi SMART (0–1)
@@ -328,8 +337,9 @@ model NilaiKriteria {
   siswa       Siswa       @relation(fields: [siswaId], references: [id])
   kriteria    Kriteria    @relation(fields: [kriteriaId], references: [id])
   tahunAjaran TahunAjaran @relation(fields: [tahunAjaranId], references: [id])
+  kelas       Kelas?      @relation(fields: [kelasId], references: [id])
 
-  @@unique([siswaId, kriteriaId, tahunAjaranId])
+  @@unique([siswaId, kriteriaId, tahunAjaranId, scope])
 }
 
 /// Hasil akhir perhitungan SMART per siswa per tahun ajaran.
@@ -337,6 +347,8 @@ model Ranking {
   id            String   @id @default(uuid())
   siswaId       String
   tahunAjaranId String
+  kelasId       String?
+  scope         RankingScope @default(ANGKATAN)
 
   nilaiAkhir Float // hasil akhir SMART (weighted sum)
   peringkat  Int
@@ -346,6 +358,7 @@ model Ranking {
 
   siswa       Siswa       @relation(fields: [siswaId], references: [id])
   tahunAjaran TahunAjaran @relation(fields: [tahunAjaranId], references: [id])
+  kelas       Kelas?      @relation(fields: [kelasId], references: [id])
 
-  @@unique([siswaId, tahunAjaranId])
+  @@unique([siswaId, tahunAjaranId, scope])
 }

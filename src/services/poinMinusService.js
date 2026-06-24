@@ -1,4 +1,5 @@
 import prisma from '../config/prisma.js';
+import { triggerHitungSMART } from './smartService.js';
 
 export const addPoin = async ({ siswaId, deskripsi, poin, tanggal }) => {
     if (!siswaId) throw new Error('Siswa Id Tidak Ditemukan');
@@ -14,6 +15,7 @@ export const addPoin = async ({ siswaId, deskripsi, poin, tanggal }) => {
         },
     });
 
+    await triggerHitungSMART({ siswaId });
     return newPoin;
 };
 
@@ -39,6 +41,7 @@ export const updatePoin = async ({ id, deskripsi, poin, tanggal }) => {
         },
     });
 
+    await triggerHitungSMART({ siswaId: updatePoin.siswaId });
     return updatePoin;
 };
 
