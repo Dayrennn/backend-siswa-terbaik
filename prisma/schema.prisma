@@ -259,6 +259,7 @@ model Hafalan {
   id        String @id @default(uuid())
   siswaId   String @unique
   jumlahJuz Int    @default(0)
+  keterangan String? 
 
   siswa Siswa @relation(fields: [siswaId], references: [id])
 }

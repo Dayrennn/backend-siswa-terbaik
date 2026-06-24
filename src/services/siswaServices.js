@@ -121,6 +121,7 @@ export const getAllSiswa = async () => {
         include: {
             tahunAjaran: true,
             kelas: true,
+            hafalan: true,
             absenRekap: {
                 include: { pelajaran: true },
             },
@@ -177,6 +178,7 @@ export const getOneSiswa = async (id) => {
             where: { id },
             include: {
                 kelas: true,
+                hafalan: true,
                 nilaiRekap: {
                     include: { pelajaran: true },
                 },
