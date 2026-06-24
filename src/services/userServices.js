@@ -94,7 +94,7 @@ export const loginUser = async ({ email, password }) => {
     const isMatch = await comparePassword(password, user.password);
 
     if (!isMatch) {
-        throw new Error('Password salah');
+        throw new Error('Email atau Password salah');
     }
 
     const token = generateToken({ id: user.id, email: user.email, role: user.role });
