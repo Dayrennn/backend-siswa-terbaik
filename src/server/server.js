@@ -13,6 +13,7 @@ import nilaiEskul from '../routes/nilaiEskulRoutes.js';
 import absenRoutes from '../routes/absenRekapRoutes.js';
 import nilaiRoutes from '../routes/nilaiRekapRoutes.js';
 import hafalanRoutes from '../routes/hafalanRoutes.js';
+import homeRoutes from '../routes/dashboardRoutes.js';
 import morgan from 'morgan';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -41,6 +42,7 @@ app.use('/nilai-eskul', nilaiEskul);
 app.use('/absen', absenRoutes);
 app.use('/nilai', nilaiRoutes);
 app.use('/hafalan', hafalanRoutes);
+app.use('/home', homeRoutes);
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
