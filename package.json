@@ -4,9 +4,9 @@
     "private": true,
     "type": "module",
     "scripts": {
+        "build": "prisma generate",
         "start": "node src/server/server.js",
-        "dev": "nodemon src/server/server.js",
-        "build": "prisma generate"
+        "dev": "nodemon src/server/server.js"
     },
     "dependencies": {
         "@prisma/client": "^5.22.0",
