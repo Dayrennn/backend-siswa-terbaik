@@ -6,7 +6,7 @@
     "scripts": {
         "start": "node src/server/server.js",
         "dev": "nodemon src/server/server.js",
-        "build": "prisma generate",
+        "build": "prisma generate"
     },
     "dependencies": {
         "@prisma/client": "^5.22.0",
