@@ -25,7 +25,7 @@ app.use(morgan('dev'));
 
 app.use(
     cors({
-        origin: ['http://localhost:3001', 'https://frontend-skripsi.netlify.app'],
+        origin: ['http://localhost:3001', 'https://frontend-siswa-terbaik.netlify.app'],
         credentials: true,
     }),
 );
