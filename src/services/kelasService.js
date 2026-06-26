@@ -82,7 +82,9 @@ export const getOneKelas = async (id) => {
                     username: true,
                     telephone: true,
                     kelas: true,
-                    pelajaran: true,
+                    pelajaran: {
+                        include: { pelajaran: true },
+                    },
                 },
             },
         },

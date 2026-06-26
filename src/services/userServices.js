@@ -69,12 +69,14 @@ export const verifyRegisterWithOtp = async ({ email, otp }) => {
             // pelajaran opsional
             ...(metadata.pelajaranId?.length > 0 && {
                 pelajaran: {
-                    connect: metadata.pelajaranId.map((id) => ({ id })),
+                    create: metadata.pelajaranId.map((id) => ({ pelajaranId: id })),
                 },
             }),
         },
         include: {
-            pelajaran: true,
+            pelajaran: {
+                include: { pelajaran: true },
+            },
         },
     });
 
@@ -85,17 +87,17 @@ export const verifyRegisterWithOtp = async ({ email, otp }) => {
 export const loginUser = async ({ email, password }) => {
     const user = await prisma.user.findUnique({
         where: { email },
+        include: {
+            pelajaran: {
+                include: { pelajaran: true },
+            },
+        },
     });
 
-    if (!user) {
-        throw new Error('User tidak ditemukan');
-    }
+    if (!user) throw new Error('User tidak ditemukan');
 
     const isMatch = await comparePassword(password, user.password);
-
-    if (!isMatch) {
-        throw new Error('Email atau Password salah');
-    }
+    if (!isMatch) throw new Error('Email atau Password salah');
 
     const token = generateToken({ id: user.id, email: user.email, role: user.role });
 
@@ -154,14 +156,15 @@ export const updateUser = async (id, { username, email, telephone, password, rol
     // jika ada pelajaran yang di isi, set disemua relasi
     if (pelajaranId !== undefined) {
         data.pelajaran = {
-            set: pelajaranId.map((id) => ({ id })),
+            deleteMany: {},
+            create: pelajaranId.map((id) => ({ pelajaranId: id })),
         };
     }
     const targetRole = role ?? existingUser.role;
     if (targetRole === 'WaliKelas') {
         if (kelasId) data.kelas = { connect: { id: kelasId } };
     } else {
-        data.kelas = { disconnect: true };
+        data.waliKelas = { set: [] };
     }
 
     const updateUser = await prisma.user.update({
@@ -173,7 +176,9 @@ export const updateUser = async (id, { username, email, telephone, password, rol
             email: true,
             telephone: true,
             role: true,
-            pelajaran: true,
+            pelajaran: {
+                include: { pelajaran: true },
+            },
             waliKelas: true,
         },
     });
@@ -190,7 +195,9 @@ export const getAllUser = async () => {
             email: true,
             telephone: true,
             role: true,
-            pelajaran: true,
+            pelajaran: {
+                include: { pelajaran: true },
+            },
             isVerified: true,
             waliKelas: true,
         },
@@ -209,7 +216,9 @@ export const getOneUser = async (id) => {
             email: true,
             telephone: true,
             role: true,
-            pelajaran: true,
+            pelajaran: {
+                include: { pelajaran: true },
+            },
             isVerified: true,
             waliKelas: true,
         },
@@ -233,7 +242,9 @@ export const getWaliKelas = async () => {
             username: true,
             telephone: true,
             waliKelas: true,
-            pelajaran: true,
+            pelajaran: {
+                include: { pelajaran: true },
+            },
             isVerified: true,
         },
     });
@@ -249,7 +260,9 @@ export const getWaliKelasByKelas = async (kelasId) => {
             username: true,
             telephone: true,
             waliKelas: true,
-            pelajaran: true,
+            pelajaran: {
+                include: { pelajaran: true },
+            },
             isVerified: true,
         },
     });
@@ -258,14 +271,16 @@ export const getWaliKelasByKelas = async (kelasId) => {
 };
 
 export const getAllGuru = async () => {
-    const guru = await prisma.user.findFirst({
+    const guru = await prisma.user.findMany({
         where: { role: 'Guru' },
         select: {
             id: true,
             username: true,
             telephone: true,
             waliKelas: true,
-            pelajaran: true,
+            pelajaran: {
+                include: { pelajaran: true },
+            },
             isVerified: true,
         },
     });

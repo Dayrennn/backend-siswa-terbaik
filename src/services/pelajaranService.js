@@ -96,8 +96,12 @@ export const getAllPelajaran = async () => {
             kodePelajaran: true,
             guru: {
                 select: {
-                    id: true,
-                    username: true,
+                    guru: {
+                        select: {
+                            id: true,
+                            username: true,
+                        },
+                    },
                 },
             },
         },

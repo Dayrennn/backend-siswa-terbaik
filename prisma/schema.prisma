@@ -84,14 +84,23 @@ model Kelas {
 
 model Pelajaran {
   id            String @id @default(uuid())
-  guruId String?
   namaPelajaran String
   kodePelajaran String
 
   // Relasi
   nilaiRekap NilaiRekap[]
   absenRekap AbsenRekap[]
-  guru User? @relation(fields: [guruId], references: [id])
+  guru GuruPelajaran[]
+}
+
+model GuruPelajaran {
+  id String @id @default(uuid())
+  guruId String
+  pelajaranId String
+
+  guru      User      @relation(fields: [guruId], references: [id])
+  pelajaran Pelajaran @relation(fields: [pelajaranId], references: [id])
+  @@unique([guruId, pelajaranId])
 }
 
 model Eskul {
@@ -119,7 +128,7 @@ model User {
 
   // Relasi
   waliKelas Kelas[]
-  pelajaran Pelajaran[]
+  pelajaran GuruPelajaran[]
   otps      Otp[]
 }
 

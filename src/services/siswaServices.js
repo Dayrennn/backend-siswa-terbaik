@@ -126,10 +126,14 @@ export const getAllSiswa = async () => {
             kelas: true,
             hafalan: true,
             absenRekap: {
-                include: { pelajaran: true },
+                include: {
+                    pelajaran: true,
+                },
             },
             nilaiRekap: {
-                include: { pelajaran: true },
+                include: {
+                    pelajaran: true,
+                },
             },
             nilaiEskulRekap: {
                 include: { eskul: true },
@@ -189,10 +193,14 @@ export const getOneSiswa = async (id) => {
                 hafalan: true,
                 tahunAjaran: true,
                 nilaiRekap: {
-                    include: { pelajaran: true },
+                    include: {
+                        pelajaran: true,
+                    },
                 },
                 absenRekap: {
-                    include: { pelajaran: true },
+                    include: {
+                        pelajaran: true,
+                    },
                 },
                 nilaiEskulRekap: {
                     include: { eskul: true },
@@ -265,7 +273,9 @@ export const getSiswaByTahunAjaran = async (tahunAjaranId) => {
             kelas: true,
             tahunAjaran: true,
             nilaiRekap: {
-                include: { pelajaran: true },
+                include: {
+                    pelajaran: true,
+                },
             },
             nilaiEskulRekap: {
                 include: { eskul: true },
@@ -286,10 +296,14 @@ export const getSiswaByTahunAjaranAndKelas = async ({ tahunAjaranId, kelasId }) 
             kelas: true,
             tahunAjaran: true,
             nilaiRekap: {
-                include: { pelajaran: true },
+                include: {
+                    pelajaran: true,
+                },
             },
             absenRekap: {
-                include: { pelajaran: true },
+                include: {
+                    pelajaran: true,
+                },
             },
             nilaiEskulRekap: {
                 include: { eskul: true },

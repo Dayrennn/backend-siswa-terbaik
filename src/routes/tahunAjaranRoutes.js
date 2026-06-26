@@ -12,12 +12,12 @@ import { authorizeRole } from '../middleware/authorizeRoleMiddleware.js';
 
 const router = express.Router();
 
-router.post('/create', authMiddleware, authorizeRole('Admin'), createTahunAjaran);
+router.post('/create', authMiddleware, createTahunAjaran);
 
-router.put('/update/:id', authMiddleware, authorizeRole('Admin'), modidyTahunAjaran);
-router.get('/', authMiddleware, authorizeRole('Admin'), seeAllTahunAjaran);
+router.put('/update/:id', authMiddleware, modidyTahunAjaran);
+router.get('/', authMiddleware, seeAllTahunAjaran);
 router.get('/:id', authMiddleware, getTahunAjaranById);
 
-router.delete('/delete/:id', authMiddleware, authorizeRole('Admin'), removeTahunAjaran);
+router.delete('/delete/:id', authMiddleware, removeTahunAjaran);
 
 export default router;

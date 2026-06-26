@@ -8,20 +8,20 @@ import {
     getAllKelas,
     getKelasById,
     removeKelas,
-    getKelasTahunAjaran
+    getKelasTahunAjaran,
 } from '../controllers/kelasController.js';
 
 const router = express.Router();
 
-router.post('/create/:tahunAjaranId', authMiddleware, authorizeRole('Admin'), createKelas);
+router.post('/create/:tahunAjaranId', authMiddleware, createKelas);
 
-router.put('/update/:id', authMiddleware, authorizeRole('Admin'), modifyKelas);
+router.put('/update/:id', authMiddleware, modifyKelas);
 
-router.get('/', authMiddleware, authorizeRole('Admin'), getAllKelas);
-router.get('/tahun-ajaran', authMiddleware, authorizeRole('Admin'), getKelasTahunAjaran);
+router.get('/', authMiddleware, getAllKelas);
+router.get('/tahun-ajaran', authMiddleware, getKelasTahunAjaran);
 
-router.get('/:id', authMiddleware, authorizeRole('Admin'), getKelasById);
+router.get('/:id', authMiddleware, getKelasById);
 
-router.delete('/delete/:id', authMiddleware, authorizeRole('Admin'), removeKelas);
+router.delete('/delete/:id', authMiddleware, removeKelas);
 
 export default router;
