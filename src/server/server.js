@@ -23,7 +23,12 @@ const port = 3000;
 
 app.use(morgan('dev'));
 
-app.use(cors({ origin: 'https://frontend-skripsi.netlify.app', credentials: true }));
+app.use(
+    cors({
+        origin: ['http://localhost:3001', 'https://frontend-skripsi.netlify.app'],
+        credentials: true,
+    }),
+);
 app.use(express.json());
 app.use(cookieParser());
 
