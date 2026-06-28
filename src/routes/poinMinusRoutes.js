@@ -6,8 +6,13 @@ import { createPoinMinus, deletePoinMinus, editPoinMinus } from '../controllers/
 
 const router = express.Router();
 
-router.post('/create', authMiddleware, authorizeRole('Admin'), createPoinMinus);
-router.put('/update/:id', authMiddleware, authorizeRole('Admin'), editPoinMinus);
-router.delete('/delete/:id', authMiddleware, authorizeRole('Admin'), deletePoinMinus);
+router.post('/create', authMiddleware, authorizeRole('Admin', 'WakilKepalaSekolah', 'WaliKelas'), createPoinMinus);
+router.put('/update/:id', authMiddleware, authorizeRole('Admin', 'WakilKepalaSekolah', 'WaliKelas'), editPoinMinus);
+router.delete(
+    '/delete/:id',
+    authMiddleware,
+    authorizeRole('Admin', 'WakilKepalaSekolah', 'WaliKelas'),
+    deletePoinMinus,
+);
 
 export default router;

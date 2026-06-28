@@ -49,7 +49,7 @@ enum RankingScope {
 model TahunAjaran {
   id              String            @id @default(uuid())
   namaTahunAjaran String            // contoh: "2024/2025 Semester 1"
-  status          StatusTahunAjaran @default(Aktif)
+  status          StatusTahunAjaran @default(Nonaktif)
   createdAt       DateTime          @default(now())
 
   // Relasi
