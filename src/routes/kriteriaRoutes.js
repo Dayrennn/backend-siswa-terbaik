@@ -25,9 +25,9 @@ router.put(
     modifyKriteria,
 );
 
-router.get('/', authMiddleware, authorizeRole('Admin', 'WakilKepalaSekolah'), getAllKriteria);
+router.get('/', authMiddleware, getAllKriteria);
 
-router.get('/:id', authMiddleware, authorizeRole('Admin', 'WakilKepalaSekolah'), getKriteriaById);
+router.get('/:id', authMiddleware, getKriteriaById);
 
 router.delete(
     '/delete/:id',
