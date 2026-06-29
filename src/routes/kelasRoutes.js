@@ -18,7 +18,7 @@ router.post('/create/:tahunAjaranId', authMiddleware, createKelas);
 router.put('/update/:id', authMiddleware, modifyKelas);
 
 router.get('/', authMiddleware, getAllKelas);
-router.get('/tahun-ajaran', authMiddleware, getKelasTahunAjaran);
+router.get('/tahun-ajaran', getKelasTahunAjaran);
 
 router.get('/:id', authMiddleware, getKelasById);
 
