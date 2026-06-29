@@ -4,3 +4,4 @@ node_modules
 .gitignore
 /generated/prisma
 /node_modules
+/src/scripts
