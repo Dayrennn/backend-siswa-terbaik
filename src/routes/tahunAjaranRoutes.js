@@ -15,7 +15,7 @@ const router = express.Router();
 router.post('/create', authMiddleware, createTahunAjaran);
 
 router.put('/update/:id', authMiddleware, modidyTahunAjaran);
-router.get('/', authMiddleware, seeAllTahunAjaran);
+router.get('/', seeAllTahunAjaran);
 router.get('/:id', authMiddleware, getTahunAjaranById);
 
 router.delete('/delete/:id', authMiddleware, removeTahunAjaran);
