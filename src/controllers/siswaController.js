@@ -49,7 +49,10 @@ export const modifySiswa = async (req, res) => {
 
 export const seeAllSiswa = async (req, res) => {
     try {
-        const siswas = await getAllSiswa();
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+
+        const siswas = await getAllSiswa(page, limit);
         res.status(200).json({ message: 'Berhasil ambil data siswa', data: siswas });
     } catch (error) {
         res.status(400).json({ message: error.message });

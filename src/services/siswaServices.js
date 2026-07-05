@@ -119,44 +119,51 @@ export const updateSiswa = async (id, { nis, namaSiswa, tanggalLahir, kelasId, t
     return updatedSiswa;
 };
 
-export const getAllSiswa = async () => {
-    const siswas = await prisma.siswa.findMany({
-        include: {
-            tahunAjaran: true,
-            kelas: true,
-            hafalan: true,
-            absenRekap: {
-                include: {
-                    pelajaran: true,
+export const getAllSiswa = async (page = 1, limit = 10) => {
+    const skip = (page - 1) * limit;
+
+    const [siswas, totalSiswa] = await Promise.all([
+        prisma.siswa.findMany({
+            skip,
+            take: limit,
+            include: {
+                tahunAjaran: true,
+                kelas: true,
+                hafalan: true,
+                absenRekap: {
+                    include: {
+                        pelajaran: true,
+                    },
+                },
+                nilaiRekap: {
+                    include: {
+                        pelajaran: true,
+                    },
+                },
+                nilaiEskulRekap: {
+                    include: { eskul: true },
+                },
+                nilaiKriteria: {
+                    include: { kriteria: true },
+                },
+                ranking: true,
+                poinPlus: {
+                    select: { id: true, siswaId: true, deskripsi: true, poin: true, tanggal: true },
+                    orderBy: { tanggal: 'desc' },
+                    take: 5,
+                },
+                poinMinus: {
+                    select: { id: true, siswaId: true, deskripsi: true, poin: true, tanggal: true },
+                    orderBy: { tanggal: 'desc' },
+                    take: 5,
+                },
+                _count: {
+                    select: { poinPlus: true, poinMinus: true },
                 },
             },
-            nilaiRekap: {
-                include: {
-                    pelajaran: true,
-                },
-            },
-            nilaiEskulRekap: {
-                include: { eskul: true },
-            },
-            nilaiKriteria: {
-                include: { kriteria: true },
-            },
-            ranking: true,
-            poinPlus: {
-                select: { id: true, siswaId: true, deskripsi: true, poin: true, tanggal: true },
-                orderBy: { tanggal: 'desc' },
-                take: 5,
-            },
-            poinMinus: {
-                select: { id: true, siswaId: true, deskripsi: true, poin: true, tanggal: true },
-                orderBy: { tanggal: 'desc' },
-                take: 5,
-            },
-            _count: {
-                select: { poinPlus: true, poinMinus: true },
-            },
-        },
-    });
+        }),
+        prisma.siswa.count(),
+    ]);
 
     const siswaIds = siswas.map((s) => s.id);
 
@@ -176,12 +183,22 @@ export const getAllSiswa = async () => {
     const plusMap = Object.fromEntries(allPlus.map((p) => [p.siswaId, p._sum.poin ?? 0]));
     const minusMap = Object.fromEntries(allMinus.map((p) => [p.siswaId, p._sum.poin ?? 0]));
 
-    return siswas.map((s) => ({
+    const data = siswas.map((s) => ({
         ...s,
         totalPoinPlus: plusMap[s.id] ?? 0,
         totalPoinMinus: minusMap[s.id] ?? 0,
         ringkasan: hitungRingkasan(s),
     }));
+
+    return {
+        data,
+        meta: {
+            page,
+            limit,
+            total: totalSiswa,
+            totalPages: Math.ceil(totalSiswa / limit),
+        },
+    };
 };
 
 export const getOneSiswa = async (id) => {
