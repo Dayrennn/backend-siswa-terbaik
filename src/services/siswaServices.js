@@ -404,10 +404,11 @@ export const getSiswaByHafalan = async () => {
     return result;
 };
 
-export const getRankingAngkatan = async ({ tahunAjaranId, kelasIndukId }) => {
+export const getRankingAngkatan = async ({ tahunAjaranId, kelasIndukId, limit = 10 }) => {
     return prisma.ranking.findMany({
         where: { tahunAjaranId, kelasIndukId, scope: 'ANGKATAN' },
         orderBy: { peringkat: 'asc' },
+        take: limit,
         include: {
             siswa: {
                 include: {

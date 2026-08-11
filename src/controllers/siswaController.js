@@ -154,10 +154,11 @@ export const seeRankingAngkatan = async (req, res) => {
 export const seeRankingKelas = async (req, res) => {
     try {
         const { tahunAjaranId, kelasId } = req.query;
+        const limit = parseInt(req.query.limit) || 10;
         if (!tahunAjaranId || !kelasId) {
             throw new Error('tahunAjaranId dan kelasId wajib diisi');
         }
-        const result = await getRankingKelas({ tahunAjaranId, kelasId });
+        const result = await getRankingKelas({ tahunAjaranId, kelasId, limit });
         res.status(200).json({
             message: 'Berhasil ambil ranking kelas',
             data: result,
