@@ -14,6 +14,7 @@ import absenRoutes from '../routes/absenRekapRoutes.js';
 import nilaiRoutes from '../routes/nilaiRekapRoutes.js';
 import hafalanRoutes from '../routes/hafalanRoutes.js';
 import homeRoutes from '../routes/dashboardRoutes.js';
+import kelasIndukRoutes from '../routes/kelasIndukRoutes.js';
 import morgan from 'morgan';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -48,6 +49,7 @@ app.use('/absen', absenRoutes);
 app.use('/nilai', nilaiRoutes);
 app.use('/hafalan', hafalanRoutes);
 app.use('/home', homeRoutes);
+app.use('/kelas-induk', kelasIndukRoutes);
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);

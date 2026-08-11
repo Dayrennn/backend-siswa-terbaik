@@ -2,9 +2,9 @@ import { addKelas, updateKelas, getKelas, getOneKelas, deleteKelas, getKelasByTa
 
 export const createKelas = async (req, res) => {
     try {
-        const { tahunAjaranId } = req.params;
+        const { tahunAjaranId, kelasIndukId } = req.params;
         const { kodeKelas, namaKelas } = req.body;
-        const addedKelas = await addKelas({ kodeKelas, namaKelas, tahunAjaranId });
+        const addedKelas = await addKelas({ kodeKelas, namaKelas, tahunAjaranId, kelasIndukId });
         res.status(200).json({ message: 'Data kelas berhasil ditambah', data: addedKelas });
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -14,10 +14,11 @@ export const createKelas = async (req, res) => {
 export const modifyKelas = async (req, res) => {
     try {
         const { id } = req.params;
-        const { kodeKelas, namaKelas } = req.body;
+        const { kodeKelas, namaKelas, kelasIndukId } = req.body;
         const updatedKelas = await updateKelas(id, {
             kodeKelas,
             namaKelas,
+            kelasIndukId
         });
         res.status(200).json({ message: 'Data berhasil diubah', data: updatedKelas });
     } catch (error) {

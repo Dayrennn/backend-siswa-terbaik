@@ -65,13 +65,23 @@ model TahunAjaran {
   otp             Otp[]
 }
 
+model KelasInduk {
+  id            String  @id @default(uuid())
+  namaKelasInduk String
+
+  kelas Kelas[]
+    nilaiKriteria NilaiKriteria[] 
+  ranking       Ranking[]
+}
 model Kelas {
   id            String  @id @default(uuid())
   kodeKelas     String
   namaKelas     String
   tahunAjaranId String?
+  kelasIndukId String?
 
   // Relasi
+  kelasInduk KelasInduk? @relation(fields: [kelasIndukId], references: [id])
   tahunAjaran     TahunAjaran?      @relation(fields: [tahunAjaranId], references: [id])
   waliKelas       User[]
   siswa           Siswa[]
@@ -336,6 +346,7 @@ model NilaiKriteria {
   kriteriaId    String
   tahunAjaranId String
   kelasId       String?
+  kelasIndukId  String?
   scope         RankingScope @default(ANGKATAN)
 
   nilaiRaw       Float  // nilai mentah sebelum normalisasi
@@ -347,6 +358,7 @@ model NilaiKriteria {
   kriteria    Kriteria    @relation(fields: [kriteriaId], references: [id])
   tahunAjaran TahunAjaran @relation(fields: [tahunAjaranId], references: [id])
   kelas       Kelas?      @relation(fields: [kelasId], references: [id])
+  kelasInduk  KelasInduk? @relation(fields: [kelasIndukId], references: [id])
 
   @@unique([siswaId, kriteriaId, tahunAjaranId, scope])
 }
@@ -358,6 +370,7 @@ model Ranking {
   tahunAjaranId String
   kelasId       String?
   scope         RankingScope @default(ANGKATAN)
+  kelasIndukId  String?
 
   nilaiAkhir Float // hasil akhir SMART (weighted sum)
   peringkat  Int
@@ -368,6 +381,7 @@ model Ranking {
   siswa       Siswa       @relation(fields: [siswaId], references: [id])
   tahunAjaran TahunAjaran @relation(fields: [tahunAjaranId], references: [id])
   kelas       Kelas?      @relation(fields: [kelasId], references: [id])
+  kelasInduk  KelasInduk? @relation(fields: [kelasIndukId], references: [id])
 
   @@unique([siswaId, tahunAjaranId, scope])
 }

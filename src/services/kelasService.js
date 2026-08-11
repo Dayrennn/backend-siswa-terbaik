@@ -1,6 +1,6 @@
 import prisma from '../config/prisma.js';
 
-export const addKelas = async ({ kodeKelas, namaKelas, tahunAjaranId }) => {
+export const addKelas = async ({ kodeKelas, namaKelas, tahunAjaranId, kelasIndukId }) => {
     if (!kodeKelas?.trim()) {
         throw new Error('Nama kelas wajib di isi');
     }
@@ -10,11 +10,15 @@ export const addKelas = async ({ kodeKelas, namaKelas, tahunAjaranId }) => {
     if (!tahunAjaranId) {
         throw new Error('Tahun Ajaran Wajib Di Isi');
     }
+    if (!kelasIndukId) {
+        throw new Error(' Kelas Induk Wajib Di Isi');
+    }
 
     const existingKelas = await prisma.kelas.findFirst({
         where: {
             kodeKelas,
             tahunAjaranId,
+            kelasIndukId,
         },
     });
 
@@ -25,36 +29,49 @@ export const addKelas = async ({ kodeKelas, namaKelas, tahunAjaranId }) => {
             kodeKelas: kodeKelas,
             namaKelas: namaKelas,
             tahunAjaranId,
+            kelasIndukId,
         },
     });
 
     return newKelas;
 };
 
-export const updateKelas = async (id, { kodeKelas, namaKelas }) => {
+export const updateKelas = async (id, { kodeKelas, namaKelas, kelasIndukId }) => {
     const existingKelas = await prisma.kelas.findUnique({
         where: { id },
     });
 
     if (!existingKelas) throw new Error('Kelas tidak ditemukan');
 
-    if (namaKelas) {
-        const existing = await prisma.kelas.findFirst({
-            where: { namaKelas, kodeKelas, NOT: { id } },
-        });
-        if (existing) throw new Error('Nama kelas sudah digunakan');
-    }
+    // Tentukan nilai final (pakai input baru kalau ada, kalau tidak pakai data lama)
+    const finalKodeKelas = kodeKelas ?? existingKelas.kodeKelas;
+    const finalNamaKelas = namaKelas ?? existingKelas.namaKelas;
+    const finalKelasIndukId = kelasIndukId ?? existingKelas.kelasIndukId;
+
+    // Cek duplikat berdasarkan kombinasi final
+    const duplicate = await prisma.kelas.findFirst({
+        where: {
+            kodeKelas: finalKodeKelas,
+            namaKelas: finalNamaKelas,
+            kelasIndukId: finalKelasIndukId,
+            tahunAjaranId: existingKelas.tahunAjaranId,
+            NOT: { id },
+        },
+    });
+
+    if (duplicate) throw new Error('Kelas dengan kode, nama, dan kelas induk yang sama sudah ada');
 
     const data = {};
     if (namaKelas) data.namaKelas = namaKelas;
     if (kodeKelas) data.kodeKelas = kodeKelas;
+    if (kelasIndukId) data.kelasIndukId = kelasIndukId;
 
-    const updateKelas = await prisma.kelas.update({
+    const updatedKelas = await prisma.kelas.update({
         where: { id },
-        data: data,
+        data,
     });
 
-    return updateKelas;
+    return updatedKelas;
 };
 
 export const getKelas = async () => {
@@ -64,6 +81,7 @@ export const getKelas = async () => {
             kodeKelas: true,
             namaKelas: true,
             tahunAjaranId: true,
+            kelasIndukId: true,
         },
     });
     return kelas;
@@ -76,6 +94,7 @@ export const getOneKelas = async (id) => {
             id: true,
             kodeKelas: true,
             namaKelas: true,
+            kelasIndukId: true,
             waliKelas: {
                 select: {
                     email: true,
@@ -124,6 +143,12 @@ export const getKelasByTahunAjaran = async (tahunAjaranId) => {
             id: true,
             kodeKelas: true,
             namaKelas: true,
+            kelasInduk: {
+                select: {
+                    id: true,
+                    namaKelasInduk: true,
+                },
+            },
         },
     });
     return kelas;

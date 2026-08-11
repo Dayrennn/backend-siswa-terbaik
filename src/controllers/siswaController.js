@@ -137,16 +137,16 @@ export const seeAllSiswaHafalan = async (req, res) => {
 
 export const seeRankingAngkatan = async (req, res) => {
     try {
-        const { tahunAjaranId } = req.params;
-        const result = await getRankingAngkatan(tahunAjaranId);
-        res.status(200).json({
-            message: 'Berhasil ambil ranking angkatan',
-            data: result,
-        });
+        const { tahunAjaranId, kelasIndukId } = req.query;
+
+        if (!tahunAjaranId || !kelasIndukId) {
+            throw new Error('tahunAjaranId dan kelasIndukId wajib diisi');
+        }
+
+        const data = await getRankingAngkatan({ tahunAjaranId, kelasIndukId });
+        res.status(200).json({ message: 'Ranking angkatan berhasil diambil', data });
     } catch (error) {
-        res.status(500).json({
-            message: error.message,
-        });
+        res.status(400).json({ message: error.message });
     }
 };
 

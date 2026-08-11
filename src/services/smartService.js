@@ -60,7 +60,6 @@ const buildRawValuesForStudents = async (siswaIds, tahunAjaranId) => {
         }),
     ]);
 
-    // Build maps per siswaId
     const nilaiRekapMap = nilaiRekap.reduce((acc, item) => {
         acc[item.siswaId] = acc[item.siswaId] || [];
         acc[item.siswaId].push(item.nilaiAkhir ?? 0);
@@ -95,7 +94,6 @@ const buildRawValuesForStudents = async (siswaIds, tahunAjaranId) => {
         return acc;
     }, {});
 
-    // Gabungkan semua jadi satu raw value per siswa
     return siswaIds.reduce((acc, id) => {
         const nilaiArr  = nilaiRekapMap[id] || [];
         const eskulArr  = eskulMap[id] || [];
@@ -147,17 +145,18 @@ const buildNormalizations = (rawValuesByStudent, siswaIds) => {
 
 // ============================================================
 //  SIMPAN NILAI KRITERIA KE DB
+//  siswaList item: { id, kelasId, kelasIndukId }
 // ============================================================
 const saveNilaiKriteria = async ({ siswaList, tahunAjaranId, normalizations, kriteriaDbMap, scope }) => {
     await Promise.all(
         siswaList.flatMap((siswa) =>
-            KRITERIA_CONFIG.map((kriteria) => {
+            KRITERIA_CONFIG.map(async (kriteria) => {
                 const kriteriaId = kriteriaDbMap[kriteria.key];
-                if (!kriteriaId) return Promise.resolve();
+                if (!kriteriaId) return;
 
                 const { nilaiRaw, nilaiNormalisasi } = normalizations[siswa.id][kriteria.key];
 
-                return prisma.nilaiKriteria.upsert({
+                const existing = await prisma.nilaiKriteria.findUnique({
                     where: {
                         siswaId_kriteriaId_tahunAjaranId_scope: {
                             siswaId: siswa.id,
@@ -166,12 +165,27 @@ const saveNilaiKriteria = async ({ siswaList, tahunAjaranId, normalizations, kri
                             scope,
                         },
                     },
-                    update: { kelasId: siswa.kelasId, nilaiRaw, nilaiNormalisasi },
-                    create: {
+                });
+
+                if (existing) {
+                    return prisma.nilaiKriteria.update({
+                        where: { id: existing.id },
+                        data: {
+                            kelasId: siswa.kelasId,
+                            kelasIndukId: siswa.kelasIndukId ?? null,
+                            nilaiRaw,
+                            nilaiNormalisasi,
+                        },
+                    });
+                }
+
+                return prisma.nilaiKriteria.create({
+                    data: {
                         siswaId: siswa.id,
                         kriteriaId,
                         tahunAjaranId,
                         kelasId: siswa.kelasId,
+                        kelasIndukId: siswa.kelasIndukId ?? null,
                         scope,
                         nilaiRaw,
                         nilaiNormalisasi,
@@ -184,12 +198,14 @@ const saveNilaiKriteria = async ({ siswaList, tahunAjaranId, normalizations, kri
 
 // ============================================================
 //  SIMPAN RANKING KE DB
+//  siswaList item: { id, kelasId, kelasIndukId }
 // ============================================================
 const saveRanking = async ({ siswaList, tahunAjaranId, normalizations, scope }) => {
     const rankings = siswaList
         .map((siswa) => ({
             siswaId: siswa.id,
             kelasId: siswa.kelasId,
+            kelasIndukId: siswa.kelasIndukId ?? null,
             nilaiAkhir: KRITERIA_CONFIG.reduce((sum, k) => {
                 return sum + (normalizations[siswa.id][k.key]?.nilaiNormalisasi ?? 0) * k.bobot;
             }, 0),
@@ -207,11 +223,17 @@ const saveRanking = async ({ siswaList, tahunAjaranId, normalizations, scope }) 
                         scope,
                     },
                 },
-                update: { kelasId: row.kelasId, nilaiAkhir: row.nilaiAkhir, peringkat: row.peringkat },
+                update: {
+                    kelasId: row.kelasId,
+                    kelasIndukId: row.kelasIndukId,
+                    nilaiAkhir: row.nilaiAkhir,
+                    peringkat: row.peringkat,
+                },
                 create: {
                     siswaId: row.siswaId,
                     tahunAjaranId,
                     kelasId: row.kelasId,
+                    kelasIndukId: row.kelasIndukId,
                     scope,
                     nilaiAkhir: row.nilaiAkhir,
                     peringkat: row.peringkat,
@@ -222,11 +244,10 @@ const saveRanking = async ({ siswaList, tahunAjaranId, normalizations, scope }) 
 };
 
 // ============================================================
-//  SYNC TABEL KRITERIA — pastikan baris default selalu ada
-//  sehingga NilaiKriteria tetap bisa tersimpan dengan kriteriaId
+//  SYNC TABEL KRITERIA
 // ============================================================
 const syncKriteriaDb = async () => {
-    const kriteriaDbMap = {}; // key -> kriteriaId
+    const kriteriaDbMap = {};
 
     for (const k of KRITERIA_CONFIG) {
         const existing = await prisma.kriteria.findFirst({
@@ -234,14 +255,12 @@ const syncKriteriaDb = async () => {
         });
 
         if (existing) {
-            // Update bobot/jenis kalau berbeda
             await prisma.kriteria.update({
                 where: { id: existing.id },
                 data: { bobot: k.bobot, jenis: k.isBenefit ? 'benefit' : 'cost' },
             });
             kriteriaDbMap[k.key] = existing.id;
         } else {
-            // Buat baru kalau belum ada
             const created = await prisma.kriteria.create({
                 data: {
                     namaKriteria: k.label,
@@ -262,7 +281,6 @@ const syncKriteriaDb = async () => {
 export const triggerHitungSMART = async ({ siswaId, tahunAjaranId } = {}) => {
     if (!siswaId && !tahunAjaranId) return;
 
-    // Resolve tahunAjaranId dari siswaId kalau tidak dikirim
     if (!tahunAjaranId) {
         const siswa = await prisma.siswa.findUnique({
             where: { id: siswaId },
@@ -273,33 +291,65 @@ export const triggerHitungSMART = async ({ siswaId, tahunAjaranId } = {}) => {
 
     if (!tahunAjaranId) return;
 
-    // Ambil semua siswa dalam tahun ajaran ini
-    const siswaList = await prisma.siswa.findMany({
+    // Ambil semua siswa + kelasIndukId (lewat relasi kelas)
+    const siswaRaw = await prisma.siswa.findMany({
         where: { tahunAjaranId },
-        select: { id: true, kelasId: true },
+        select: {
+            id: true,
+            kelasId: true,
+            kelas: {
+                select: { kelasIndukId: true },
+            },
+        },
     });
-    if (siswaList.length === 0) return;
+    if (siswaRaw.length === 0) return;
+
+    // Ratakan struktur: siswa yang belum punya kelas -> kelasIndukId null
+    // (siswa tanpa kelasInduk otomatis dilewati saat pengelompokan angkatan)
+    const siswaList = siswaRaw.map((s) => ({
+        id: s.id,
+        kelasId: s.kelasId,
+        kelasIndukId: s.kelas?.kelasIndukId ?? null,
+    }));
 
     const siswaIds = siswaList.map((s) => s.id);
 
-    // Pastikan tabel Kriteria punya baris yang sesuai KRITERIA_CONFIG
     const kriteriaDbMap = await syncKriteriaDb();
-
-    // Ambil raw values dari semua model yang ada
     const rawValues = await buildRawValuesForStudents(siswaIds, tahunAjaranId);
 
-    // Ranking angkatan: semua siswa dalam tahun ajaran yang sama dibandingkan bersama.
-    const angkatanNormalizations = buildNormalizations(rawValues, siswaIds);
-    await saveNilaiKriteria({
-        siswaList,
-        tahunAjaranId,
-        normalizations: angkatanNormalizations,
-        kriteriaDbMap,
-        scope: 'ANGKATAN',
-    });
-    await saveRanking({ siswaList, tahunAjaranId, normalizations: angkatanNormalizations, scope: 'ANGKATAN' });
+    // ============================================================
+    // RANKING ANGKATAN — dikelompokkan per Kelas Induk (jenjang)
+    // Siswa tanpa kelasIndukId (belum ditempatkan di kelas) dilewati.
+    // ============================================================
+    const siswaByKelasInduk = siswaList.reduce((acc, siswa) => {
+        if (!siswa.kelasIndukId) return acc;
+        acc[siswa.kelasIndukId] = acc[siswa.kelasIndukId] || [];
+        acc[siswa.kelasIndukId].push(siswa);
+        return acc;
+    }, {});
 
-    // Ranking kelas: siswa hanya dibandingkan dengan teman satu kelas.
+    for (const angkatanSiswaList of Object.values(siswaByKelasInduk)) {
+        const angkatanSiswaIds = angkatanSiswaList.map((siswa) => siswa.id);
+        const angkatanNormalizations = buildNormalizations(rawValues, angkatanSiswaIds);
+
+        await saveNilaiKriteria({
+            siswaList: angkatanSiswaList,
+            tahunAjaranId,
+            normalizations: angkatanNormalizations,
+            kriteriaDbMap,
+            scope: 'ANGKATAN',
+        });
+        await saveRanking({
+            siswaList: angkatanSiswaList,
+            tahunAjaranId,
+            normalizations: angkatanNormalizations,
+            scope: 'ANGKATAN',
+        });
+    }
+
+    // ============================================================
+    // RANKING KELAS — dikelompokkan per Kelas (tidak berubah)
+    // ============================================================
     const siswaByKelas = siswaList.reduce((acc, siswa) => {
         if (!siswa.kelasId) return acc;
         acc[siswa.kelasId] = acc[siswa.kelasId] || [];
@@ -318,6 +368,11 @@ export const triggerHitungSMART = async ({ siswaId, tahunAjaranId } = {}) => {
             kriteriaDbMap,
             scope: 'KELAS',
         });
-        await saveRanking({ siswaList: kelasSiswaList, tahunAjaranId, normalizations: kelasNormalizations, scope: 'KELAS' });
+        await saveRanking({
+            siswaList: kelasSiswaList,
+            tahunAjaranId,
+            normalizations: kelasNormalizations,
+            scope: 'KELAS',
+        });
     }
 };

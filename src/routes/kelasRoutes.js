@@ -13,7 +13,7 @@ import {
 
 const router = express.Router();
 
-router.post('/create/:tahunAjaranId', authMiddleware, createKelas);
+router.post('/create/:tahunAjaranId/:kelasIndukId', authMiddleware, createKelas);
 
 router.put('/update/:id', authMiddleware, modifyKelas);
 
