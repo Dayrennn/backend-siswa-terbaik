@@ -2,8 +2,8 @@ import { addPoin, removePoinPlus, updatePoin } from '../services/poinPlusService
 
 export const createPoinPlus = async (req, res) => {
     try {
-        const { siswaId, deskripsi, poin, tanggal } = req.body;
-        const result = await addPoin({ siswaId, deskripsi, poin, tanggal });
+        const { siswaId, tahunAjaranId, deskripsi, poin, tanggal } = req.body;
+        const result = await addPoin({ siswaId, tahunAjaranId, deskripsi, poin, tanggal });
         res.status(200).json({
             message: `Berhasil menambahkan poin plus ke ${siswaId}`,
             data: result,

@@ -51,8 +51,9 @@ export const seeAllSiswa = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
+        const { search = '' } = req.query;
 
-        const siswas = await getAllSiswa(page, limit);
+        const siswas = await getAllSiswa(page, limit, search);
         res.status(200).json({ message: 'Berhasil ambil data siswa', data: siswas });
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -152,7 +153,10 @@ export const seeRankingAngkatan = async (req, res) => {
 
 export const seeRankingKelas = async (req, res) => {
     try {
-        const { tahunAjaranId, kelasId } = req.params;
+        const { tahunAjaranId, kelasId } = req.query;
+        if (!tahunAjaranId || !kelasId) {
+            throw new Error('tahunAjaranId dan kelasId wajib diisi');
+        }
         const result = await getRankingKelas({ tahunAjaranId, kelasId });
         res.status(200).json({
             message: 'Berhasil ambil ranking kelas',

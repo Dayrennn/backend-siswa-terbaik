@@ -162,7 +162,7 @@ export const updateUser = async (id, { username, email, telephone, password, rol
     }
     const targetRole = role ?? existingUser.role;
     if (targetRole === 'WaliKelas') {
-        if (kelasId) data.kelas = { connect: { id: kelasId } };
+        if (kelasId) data.waliKelas = { set: [{ id: kelasId }] };
     } else {
         data.waliKelas = { set: [] };
     }
@@ -254,7 +254,7 @@ export const getWaliKelas = async () => {
 
 export const getWaliKelasByKelas = async (kelasId) => {
     const waliKelas = await prisma.user.findFirst({
-        where: { role: 'WaliKelas', kelasId },
+        where: { role: 'WaliKelas', waliKelas: { some: { id: kelasId } } },
         select: {
             id: true,
             username: true,

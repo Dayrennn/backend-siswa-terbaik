@@ -48,7 +48,7 @@ enum RankingScope {
 /// Semua data transaksional mengacu ke sini untuk keperluan filter.
 model TahunAjaran {
   id              String            @id @default(uuid())
-  namaTahunAjaran String            // contoh: "2024/2025 Semester 1"
+  namaTahunAjaran String            @unique // contoh: "2024/2025 Semester 1"
   status          StatusTahunAjaran @default(Nonaktif)
   createdAt       DateTime          @default(now())
 
@@ -67,7 +67,7 @@ model TahunAjaran {
 
 model KelasInduk {
   id            String  @id @default(uuid())
-  namaKelasInduk String
+  namaKelasInduk String  @unique
 
   kelas Kelas[]
     nilaiKriteria NilaiKriteria[] 

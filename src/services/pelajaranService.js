@@ -72,7 +72,12 @@ export const updatePelajaran = async (id, { namaPelajaran, kodePelajaran, guruId
     const data = {};
     if (namaPelajaran) data.namaPelajaran = namaPelajaran;
     if (kodePelajaran) data.kodePelajaran = kodePelajaran;
-    if (guruId) data.guruId = guruId;
+    if (guruId !== undefined) {
+        data.guru = {
+            deleteMany: {},
+            ...(guruId ? { create: [{ guruId }] } : {}),
+        };
+    }
 
     const updatePelajaran = await prisma.pelajaran.update({
         where: { id },
@@ -81,7 +86,11 @@ export const updatePelajaran = async (id, { namaPelajaran, kodePelajaran, guruId
             id: true,
             namaPelajaran: true,
             kodePelajaran: true,
-            guruId: true,
+            guru: {
+                select: {
+                    guru: { select: { id: true, username: true } },
+                },
+            },
         },
     });
 
@@ -117,10 +126,9 @@ export const getOnePelajaran = async (id) => {
             id: true,
             namaPelajaran: true,
             kodePelajaran: true,
-            user: {
+            guru: {
                 select: {
-                    id: true,
-                    username: true,
+                    guru: { select: { id: true, username: true } },
                 },
             },
         },

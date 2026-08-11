@@ -1,6 +1,7 @@
 import prisma from '../config/prisma.js';
 import { getKeterangan } from '../helper/nilaiKeterangan.js';
 import { triggerHitungSMART } from './smartService.js';
+import { toScore } from '../helper/validation.js';
 
 export const inputNilaiRekap = async ({ siswaId, pelajaranId, nilaiTugas, nilaiUH, nilaiUTS, nilaiUAS }) => {
     const siswa = await prisma.siswa.findUnique({
@@ -11,8 +12,12 @@ export const inputNilaiRekap = async ({ siswaId, pelajaranId, nilaiTugas, nilaiU
     if (!siswa.kelasId) throw new Error('Siswa tidak memiliki kelas');
     if (!siswa.tahunAjaranId) throw new Error('Siswa tidak memiliki tahun ajaran');
 
+    const nilaiTugasValid = toScore(nilaiTugas, 'Nilai tugas');
+    const nilaiUHValid = toScore(nilaiUH, 'Nilai UH');
+    const nilaiUTSValid = toScore(nilaiUTS, 'Nilai UTS');
+    const nilaiUASValid = toScore(nilaiUAS, 'Nilai UAS');
     const nilaiAkhir = parseFloat(
-        (((nilaiTugas ?? 0) + (nilaiUH ?? 0) + (nilaiUTS ?? 0) + (nilaiUAS ?? 0)) / 4).toFixed(2),
+        ((nilaiTugasValid + nilaiUHValid + nilaiUTSValid + nilaiUASValid) / 4).toFixed(2),
     );
 
     const keterangan = getKeterangan(nilaiAkhir);
@@ -25,16 +30,23 @@ export const inputNilaiRekap = async ({ siswaId, pelajaranId, nilaiTugas, nilaiU
                 tahunAjaranId: siswa.tahunAjaranId,
             },
         },
-        update: { nilaiTugas, nilaiUH, nilaiUTS, nilaiUAS, nilaiAkhir, keterangan },
+        update: {
+            nilaiTugas: nilaiTugasValid,
+            nilaiUH: nilaiUHValid,
+            nilaiUTS: nilaiUTSValid,
+            nilaiUAS: nilaiUASValid,
+            nilaiAkhir,
+            keterangan,
+        },
         create: {
             siswaId,
             pelajaranId,
             tahunAjaranId: siswa.tahunAjaranId,
             kelasId: siswa.kelasId,
-            nilaiTugas,
-            nilaiUH,
-            nilaiUTS,
-            nilaiUAS,
+            nilaiTugas: nilaiTugasValid,
+            nilaiUH: nilaiUHValid,
+            nilaiUTS: nilaiUTSValid,
+            nilaiUAS: nilaiUASValid,
             nilaiAkhir,
             keterangan,
         },

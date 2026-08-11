@@ -1,6 +1,7 @@
 import prisma from '../config/prisma.js';
 import { getKeterangan } from '../helper/nilaiKeterangan.js';
 import { triggerHitungSMART } from './smartService.js';
+import { toNonNegativeInteger, toScore } from '../helper/validation.js';
 
 export const inputNilaiEskul = async ({
     siswaId,
@@ -22,12 +23,19 @@ export const inputNilaiEskul = async ({
     if (!siswa.kelasId) throw new Error('Siswa tidak memiliki kelas');
     if (!siswa.tahunAjaranId) throw new Error('Siswa tidak memiliki tahun ajaran');
 
-    const totalPertemuan = totalHadir + totalIzin + totalSakit + totalAlpha;
+    const nilaiPerformaValid = toScore(nilaiPerforma, 'Nilai performa');
+    const totalHadirValid = toNonNegativeInteger(totalHadir, 'Total hadir');
+    const totalIzinValid = toNonNegativeInteger(totalIzin, 'Total izin');
+    const totalSakitValid = toNonNegativeInteger(totalSakit, 'Total sakit');
+    const totalAlphaValid = toNonNegativeInteger(totalAlpha, 'Total alpha');
+    const totalPertemuan = totalHadirValid + totalIzinValid + totalSakitValid + totalAlphaValid;
 
     const nilaiKehadiran =
-        totalPertemuan > 0 ? ((totalHadir + totalIzin * 0.5 + totalSakit * 0.5) / totalPertemuan) * 100 : 0;
+        totalPertemuan > 0
+            ? ((totalHadirValid + totalIzinValid * 0.5 + totalSakitValid * 0.5) / totalPertemuan) * 100
+            : 0;
 
-    const nilaiAkhir = parseFloat((0.4 * nilaiKehadiran + 0.6 * (nilaiPerforma ?? 0)).toFixed(2));
+    const nilaiAkhir = parseFloat((0.4 * nilaiKehadiran + 0.6 * nilaiPerformaValid).toFixed(2));
 
     const keterangan = getKeterangan(nilaiAkhir);
 
@@ -42,11 +50,11 @@ export const inputNilaiEskul = async ({
         update: {
             nilaiAkhir,
             totalPertemuan,
-            totalHadir,
-            totalIzin,
-            totalAlpha,
-            totalSakit,
-            nilaiPerforma,
+            totalHadir: totalHadirValid,
+            totalIzin: totalIzinValid,
+            totalAlpha: totalAlphaValid,
+            totalSakit: totalSakitValid,
+            nilaiPerforma: nilaiPerformaValid,
             keterangan,
         },
         create: {
@@ -55,12 +63,12 @@ export const inputNilaiEskul = async ({
             tahunAjaranId: siswa.tahunAjaranId,
             kelasId: siswa.kelasId,
             nilaiAkhir,
-            nilaiPerforma,
+            nilaiPerforma: nilaiPerformaValid,
             totalPertemuan,
-            totalHadir,
-            totalIzin,
-            totalSakit,
-            totalAlpha,
+            totalHadir: totalHadirValid,
+            totalIzin: totalIzinValid,
+            totalSakit: totalSakitValid,
+            totalAlpha: totalAlphaValid,
             keterangan,
         },
     });

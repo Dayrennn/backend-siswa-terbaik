@@ -20,7 +20,7 @@ router.get('/:id', authMiddleware, getPelajaranById);
 router.delete(
     '/delete/:id',
     authMiddleware,
-    authorizeRole('Admin', 'WakilKepalaSekolah'),
+    authorizeRole('Admin'),
     removePelajaran,
 );
 

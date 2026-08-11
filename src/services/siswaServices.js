@@ -119,11 +119,21 @@ export const updateSiswa = async (id, { nis, namaSiswa, tanggalLahir, kelasId, t
     return updatedSiswa;
 };
 
-export const getAllSiswa = async (page = 1, limit = 10) => {
+export const getAllSiswa = async (page = 1, limit = 10, search = '') => {
     const skip = (page - 1) * limit;
+
+    const where = search?.trim()
+        ? {
+              namaSiswa: {
+                  contains: search.trim(),
+                  mode: 'insensitive',
+              },
+          }
+        : {};
 
     const [siswas, totalSiswa] = await Promise.all([
         prisma.siswa.findMany({
+            where,
             skip,
             take: limit,
             include: {
@@ -162,7 +172,7 @@ export const getAllSiswa = async (page = 1, limit = 10) => {
                 },
             },
         }),
-        prisma.siswa.count(),
+        prisma.siswa.count({ where }),
     ]);
 
     const siswaIds = siswas.map((s) => s.id);

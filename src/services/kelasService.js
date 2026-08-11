@@ -100,7 +100,6 @@ export const getOneKelas = async (id) => {
                     email: true,
                     username: true,
                     telephone: true,
-                    kelas: true,
                     pelajaran: {
                         include: { pelajaran: true },
                     },

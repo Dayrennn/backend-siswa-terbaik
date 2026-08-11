@@ -1,22 +1,22 @@
 import prisma from '../config/prisma.js';
 import { triggerHitungSMART } from './smartService.js';
+import { toPositiveInteger } from '../helper/validation.js';
 
-export const addPoin = async ({ siswaId, deskripsi, poin, tanggal }) => {
+export const addPoin = async ({ siswaId, tahunAjaranId, deskripsi, poin, tanggal }) => {
     if (!siswaId) throw new Error('Siswa Id Tidak Ditemukan');
     if (!deskripsi?.trim()) throw new Error('Deskripsi wajib di isi');
-    if (!poin) throw new Error('Poin wajib di isi');
+    const poinValid = toPositiveInteger(poin, 'Poin');
 
-    const siswa = await prisma.siswa.findUnique({
-        where: { id: siswaId },
-    });
+    const siswa = await prisma.siswa.findUnique({ where: { id: siswaId }, select: { tahunAjaranId: true } });
 
     if (!siswa) throw new Error(`Siswa dengan id ${siswaId} tidak ditemukan`);
 
     const newPoin = await prisma.poinPlus.create({
         data: {
             siswaId,
+            tahunAjaranId: tahunAjaranId ?? siswa.tahunAjaranId,
             deskripsi,
-            poin: Number(poin),
+            poin: poinValid,
             tanggal: tanggal ? new Date(tanggal) : new Date(),
         },
     });
@@ -28,11 +28,11 @@ export const addPoin = async ({ siswaId, deskripsi, poin, tanggal }) => {
 export const updatePoin = async ({ id, deskripsi, poin, tanggal }) => {
     if (!id) throw new Error('Id Poin Tidak Ditemukan');
     if (!deskripsi?.trim()) throw new Error('Deskripsi wajib di isi');
-    if (!poin) throw new Error('Poin wajib di isi');
+    const poinValid = toPositiveInteger(poin, 'Poin');
 
     const data = {};
     if (deskripsi) data.deskripsi = deskripsi;
-    if (poin) data.poin = poin;
+    data.poin = poinValid;
     if (tanggal) data.tanggal = new Date(tanggal).toISOString();
 
     const updatePoin = await prisma.poinPlus.update({
