@@ -5,9 +5,9 @@ import { createEskul, modifyEskul, removeEskul, seeAllEskul } from '../controlle
 
 const router = express.Router();
 
-router.post('/create', authMiddleware, authorizeRole('Admin'), createEskul);
-router.put('/update/:id', authMiddleware, authorizeRole('Admin'), modifyEskul);
-router.delete('/delete/:id', authMiddleware, authorizeRole('Admin'), removeEskul);
+router.post('/create', authMiddleware, authorizeRole('Admin', 'WakilKepalaSekolah'), createEskul);
+router.put('/update/:id', authMiddleware, authorizeRole('Admin', 'WakilKepalaSekolah'), modifyEskul);
+router.delete('/delete/:id', authMiddleware, authorizeRole('Admin', 'WakilKepalaSekolah'), removeEskul);
 router.get('/', authMiddleware, seeAllEskul);
 
 export default router;
