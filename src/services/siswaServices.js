@@ -1,5 +1,5 @@
 import prisma from '../config/prisma.js';
-import { hitungRingkasan } from '../helper/ringkasan.js';
+import { hitungPersentaseKehadiran, hitungRekapKehadiran, hitungRingkasan } from '../helper/ringkasan.js';
 import { triggerHitungSMART } from './smartService.js';
 
 // tambah siswa
@@ -366,42 +366,67 @@ export const getSiswaByEskul = async ({ tahunAjaranId, eskulId }) => {
     }));
 };
 
-export const getSiswaByHafalan = async () => {
-    const result = await prisma.siswa.findMany({
-        select: {
-            id: true,
-            namaSiswa: true,
-            kelas: {
-                select: {
-                    id: true,
-                    namaKelas: true,
-                    kodeKelas: true,
-                    tahunAjaran: {
-                        select: {
-                            id: true,
-                            namaTahunAjaran: true,
+export const getSiswaByHafalan = async (page = 1, limit = 10, search = '') => {
+    const skip = (page - 1) * limit;
+
+    const where = search?.trim()
+        ? {
+              namaSiswa: {
+                  contains: search.trim(),
+                  mode: 'insensitive',
+              },
+          }
+        : {};
+
+    const [siswa, totalSiswa] = await prisma.$transaction([
+        prisma.siswa.findMany({
+            where,
+            skip,
+            take: limit,
+            select: {
+                id: true,
+                namaSiswa: true,
+                kelas: {
+                    select: {
+                        id: true,
+                        namaKelas: true,
+                        kodeKelas: true,
+                        tahunAjaran: {
+                            select: {
+                                id: true,
+                                namaTahunAjaran: true,
+                            },
                         },
                     },
                 },
-            },
-            tahunAjaran: {
-                select: {
-                    id: true,
-                    namaTahunAjaran: true,
+                tahunAjaran: {
+                    select: {
+                        id: true,
+                        namaTahunAjaran: true,
+                    },
+                },
+                hafalan: {
+                    select: {
+                        id: true,
+                        siswaId: true,
+                        jumlahJuz: true,
+                        keterangan: true,
+                    },
                 },
             },
-            hafalan: {
-                select: {
-                    id: true,
-                    siswaId: true,
-                    jumlahJuz: true,
-                    keterangan: true,
-                },
-            },
-        },
-    });
+        }),
+        prisma.siswa.count({ where }),
+    ]);
 
-    return result;
+    return {
+        siswa,
+        data: {
+            page,
+            limit,
+            total: totalSiswa,
+            totalPages: Math.ceil(totalSiswa / limit),
+        },
+    };
 };
 
 export const getRankingAngkatan = async ({ tahunAjaranId, kelasIndukId, limit = 10 }) => {
@@ -438,4 +463,92 @@ export const getRankingKelas = async ({ tahunAjaranId, kelasId }) => {
             tahunAjaran: true,
         },
     });
+};
+
+export const getSiswaByHafalanId = async (id) => {
+    return prisma.siswa.findMany({
+        where: { id },
+        include: {
+            hafalan: true,
+            kelas: true,
+            tahunAjaran: true,
+        },
+    });
+};
+
+export const getAllNilaiSiswaById = async ({ siswaId, tahunAjaranId, kelasId }) => {
+    const [siswa, allPoinPlus, allPoinMinus] = await Promise.all([
+        prisma.siswa.findFirst({
+            where: { id: siswaId, tahunAjaranId, kelasId },
+            include: {
+                hafalan: true,
+
+                nilaiRekap: {
+                    include: {
+                        pelajaran: true,
+                    },
+                },
+
+                nilaiEskulRekap: {
+                    include: {
+                        eskul: true,
+                    },
+                },
+
+                nilaiKriteria: {
+                    include: {
+                        kriteria: true,
+                    },
+                },
+
+                ranking: true,
+            },
+        }),
+
+    ]);
+
+    if (!siswa) {
+        return null;
+    }
+
+    const rataRataNilai =
+        siswa.nilaiRekap.length > 0
+            ? siswa.nilaiRekap.reduce((total, item) => total + Number(item.nilaiAkhir || 0), 0) /
+              siswa.nilaiRekap.length
+            : 0;
+
+    const rataRataNilaiKriteria =
+        siswa.nilaiKriteria.length > 0
+            ? siswa.nilaiKriteria.reduce((total, item) => total + Number(item.nilaiNormalisasi || 0), 0) /
+              siswa.nilaiKriteria.length
+            : 0;
+
+    return {
+        ...siswa,
+
+        ringkasan: {
+            rataRataNilai: Number(rataRataNilai.toFixed(2)),
+            rataRataNilaiKriteria: Number(rataRataNilaiKriteria.toFixed(2)),
+        },
+    };
+};
+
+export const getOneSiswaAbsen = async ({ tahunAjaranId, kelasId, siswaId }) => {
+    const siswas = await prisma.absenRekap.findMany({
+        where: { tahunAjaranId, kelasId, siswaId },
+        include: {
+            siswa: true,
+            pelajaran: true,
+        },
+    });
+
+    const rekapKehadiran = hitungRekapKehadiran(siswas);
+    const presentaseHadir = hitungPersentaseKehadiran(rekapKehadiran.hadir, rekapKehadiran.totalPertemuan);
+
+    return {
+        siswa: siswas[0]?.siswa ?? null,
+        absenRekap: siswas,
+        rekapKehadiran,
+        presentaseHadir,
+    };
 };

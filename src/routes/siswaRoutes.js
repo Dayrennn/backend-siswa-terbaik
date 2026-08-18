@@ -11,6 +11,9 @@ import {
     seeAllSiswaHafalan,
     seeRankingAngkatan,
     seeRankingKelas,
+    getOneSiswaHafalan,
+    seeOneNilaiSiswa,
+    seeOneAbsenSiswa,
 } from '../controllers/siswaController.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 import { authorizeRole } from '../middleware/authorizeRoleMiddleware.js';
@@ -28,6 +31,9 @@ router.get('/ranking/kelas', seeRankingKelas);
 
 router.get('/siswa-eskul/:eskulId', authMiddleware, authorizeRole('Admin', 'Guru', 'WaliKelas'), seeAllSiswaByEskul);
 router.get('/hafalan', authMiddleware, seeAllSiswaHafalan);
+router.get('/hafalan/:id', authMiddleware, getOneSiswaHafalan);
+router.get('/:tahunAjaranId/:kelasId/:siswaId/nilai', authMiddleware, seeOneNilaiSiswa);
+router.get('/:tahunAjaranId/:kelasId/:siswaId/absen', authMiddleware, seeOneAbsenSiswa)
 
 router.get('/', authMiddleware, seeAllSiswa);
 router.get('/:id', authMiddleware, getSiswaById);

@@ -10,6 +10,9 @@ import {
     getSiswaByHafalan,
     getRankingAngkatan,
     getRankingKelas,
+    getSiswaByHafalanId,
+    getAllNilaiSiswaById,
+    getOneSiswaAbsen,
 } from '../services/siswaServices.js';
 
 export const createSiswa = async (req, res) => {
@@ -124,7 +127,11 @@ export const seeAllSiswaByEskul = async (req, res) => {
 
 export const seeAllSiswaHafalan = async (req, res) => {
     try {
-        const result = await getSiswaByHafalan();
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const { search = '' } = req.query;
+
+        const result = await getSiswaByHafalan(page, limit, search);
         res.status(200).json({
             message: 'Berhasil ambil data siswa by hafalan',
             data: result,
@@ -161,6 +168,51 @@ export const seeRankingKelas = async (req, res) => {
         const result = await getRankingKelas({ tahunAjaranId, kelasId, limit });
         res.status(200).json({
             message: 'Berhasil ambil ranking kelas',
+            data: result,
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: error.message,
+        });
+    }
+};
+
+export const getOneSiswaHafalan = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await getSiswaByHafalanId(id);
+        res.status(200).json({
+            message: 'Berhasil ambil siswa dengan hafalan',
+            data: result,
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: error.message,
+        });
+    }
+};
+
+export const seeOneNilaiSiswa = async (req, res) => {
+    try {
+        const { siswaId, tahunAjaranId, kelasId } = req.params;
+        const result = await getAllNilaiSiswaById({ kelasId, siswaId, tahunAjaranId });
+        res.status(200).json({
+            message: 'Berhasil ambil nilai satu siswa',
+            data: result,
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: error.message,
+        });
+    }
+};
+
+export const seeOneAbsenSiswa = async (req, res) => {
+    try {
+        const { tahunAjaranId, kelasId, siswaId } = req.params;
+        const result = await getOneSiswaAbsen({ tahunAjaranId, kelasId, siswaId });
+        res.status(200).json({
+            message: 'Berhasil ambil absen satu siswa',
             data: result,
         });
     } catch (error) {
