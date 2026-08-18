@@ -13,6 +13,7 @@ import {
     getSiswaByHafalanId,
     getAllNilaiSiswaById,
     getOneSiswaAbsen,
+    getSiswaByHafalanParams,
 } from '../services/siswaServices.js';
 
 export const createSiswa = async (req, res) => {
@@ -181,6 +182,21 @@ export const getOneSiswaHafalan = async (req, res) => {
     try {
         const { id } = req.params;
         const result = await getSiswaByHafalanId(id);
+        res.status(200).json({
+            message: 'Berhasil ambil siswa dengan hafalan',
+            data: result,
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: error.message,
+        });
+    }
+};
+
+export const seeOneSiswaHafalanParams = async (req, res) => {
+    try {
+        const { kelasId, tahunAjaranId, siswaId } = req.params;
+        const result = await getSiswaByHafalanParams({ kelasId, tahunAjaranId, siswaId });
         res.status(200).json({
             message: 'Berhasil ambil siswa dengan hafalan',
             data: result,

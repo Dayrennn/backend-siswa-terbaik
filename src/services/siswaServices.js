@@ -466,7 +466,7 @@ export const getRankingKelas = async ({ tahunAjaranId, kelasId }) => {
 };
 
 export const getSiswaByHafalanId = async (id) => {
-    return prisma.siswa.findMany({
+    return prisma.siswa.findUnique({
         where: { id },
         include: {
             hafalan: true,
@@ -474,6 +474,18 @@ export const getSiswaByHafalanId = async (id) => {
             tahunAjaran: true,
         },
     });
+};
+
+export const getSiswaByHafalanParams = async ({ siswaId, tahunAjaranId, kelasId }) => {
+    const siswas = prisma.siswa.findFirst({
+        where: { id: siswaId, tahunAjaranId, kelasId },
+        include: {
+            hafalan: true,
+            kelas: true,
+            tahunAjaran: true,
+        },
+    });
+    return siswas;
 };
 
 export const getAllNilaiSiswaById = async ({ siswaId, tahunAjaranId, kelasId }) => {
@@ -504,7 +516,6 @@ export const getAllNilaiSiswaById = async ({ siswaId, tahunAjaranId, kelasId }) 
                 ranking: true,
             },
         }),
-
     ]);
 
     if (!siswa) {
