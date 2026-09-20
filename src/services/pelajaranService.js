@@ -138,6 +138,13 @@ export const getOnePelajaran = async (id) => {
 };
 
 export const deletePelajaran = async (id) => {
+    const existing = await prisma.pelajaran.findUnique({
+        where: { id },
+    });
+
+    if (!existing) {
+        throw new Error('Data tidak ditemukan');
+    }
     const pelajarans = await prisma.pelajaran.delete({
         where: { id },
     });

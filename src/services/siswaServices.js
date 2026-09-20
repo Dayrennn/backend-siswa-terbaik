@@ -268,6 +268,10 @@ export const deleteSiswa = async (id) => {
         select: { tahunAjaranId: true },
     });
 
+    if (!siswaRecord) {
+        throw new Error('Siswa tidak ditemukan');
+    }
+
     const tahunAjaranId = siswaRecord?.tahunAjaranId;
 
     // hapus semua relasi sebelum delete siswa

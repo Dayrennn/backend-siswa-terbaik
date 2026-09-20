@@ -2,7 +2,7 @@ import prisma from '../config/prisma.js';
 
 export const addKelas = async ({ kodeKelas, namaKelas, tahunAjaranId, kelasIndukId }) => {
     if (!kodeKelas?.trim()) {
-        throw new Error('Nama kelas wajib di isi');
+        throw new Error('Kode kelas wajib di isi');
     }
     if (!namaKelas?.trim()) {
         throw new Error('Nama kelas wajib di isi');
@@ -112,6 +112,10 @@ export const getOneKelas = async (id) => {
 };
 
 export const deleteKelas = async (id) => {
+    const kelas = await prisma.kelas.findUnique({ where: { id } });
+    if (!kelas) {
+        throw new Error('Kelas tidak ditemukan');
+    }
     // ambil semua siswa di kelas ini
     const siswaList = await prisma.siswa.findMany({ where: { kelasId: id }, select: { id: true } });
     const siswaIds = siswaList.map((s) => s.id);

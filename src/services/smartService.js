@@ -11,6 +11,34 @@ const KRITERIA_CONFIG = [
     { key: 'nilaiEskul',      bobot: 0.05, isBenefit: true, label: 'Nilai Eskul' },
 ];
 
+// Jumlah baris per satu INSERT (createMany). 1000 baris x ~9 kolom masih
+// jauh di bawah batas 32767 parameter PostgreSQL.
+const BATCH_SIZE = 1000;
+
+// ============================================================
+//  HELPER
+// ============================================================
+
+// Pecah array jadi potongan berukuran `size`.
+const toChunks = (items, size) => {
+    const out = [];
+    for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+    return out;
+};
+
+// Log waktu per tahap. Aktif hanya jika env SMART_DEBUG=1.
+const debugLog = (...args) => {
+    if (process.env.SMART_DEBUG === '1') console.log('[SMART]', ...args);
+};
+
+const timed = async (label, fn) => {
+    const t0 = Date.now();
+    debugLog(`${label} ...`);
+    const result = await fn();
+    debugLog(`${label} selesai (${Date.now() - t0} ms)`);
+    return result;
+};
+
 // ============================================================
 //  NORMALISASI
 // ============================================================
@@ -146,54 +174,44 @@ const buildNormalizations = (rawValuesByStudent, siswaIds) => {
 // ============================================================
 //  SIMPAN NILAI KRITERIA KE DB
 //  siswaList item: { id, kelasId, kelasIndukId }
+//
+//  Cara kerja: hapus baris lama milik siswa-siswa ini pada scope
+//  yang sama, lalu insert ulang lewat createMany. Semuanya dalam SATU
+//  transaksi (atomik: kalau gagal, data lama tetap utuh).
+//  Jauh lebih cepat daripada upsert per baris karena hanya beberapa
+//  round trip ke database per kelompok.
 // ============================================================
 const saveNilaiKriteria = async ({ siswaList, tahunAjaranId, normalizations, kriteriaDbMap, scope }) => {
-    await Promise.all(
-        siswaList.flatMap((siswa) =>
-            KRITERIA_CONFIG.map(async (kriteria) => {
-                const kriteriaId = kriteriaDbMap[kriteria.key];
-                if (!kriteriaId) return;
+    const rows = siswaList.flatMap((siswa) =>
+        KRITERIA_CONFIG.flatMap((kriteria) => {
+            const kriteriaId = kriteriaDbMap[kriteria.key];
+            if (!kriteriaId) return [];
 
-                const { nilaiRaw, nilaiNormalisasi } = normalizations[siswa.id][kriteria.key];
+            const { nilaiRaw, nilaiNormalisasi } = normalizations[siswa.id][kriteria.key];
 
-                const existing = await prisma.nilaiKriteria.findUnique({
-                    where: {
-                        siswaId_kriteriaId_tahunAjaranId_scope: {
-                            siswaId: siswa.id,
-                            kriteriaId,
-                            tahunAjaranId,
-                            scope,
-                        },
-                    },
-                });
-
-                if (existing) {
-                    return prisma.nilaiKriteria.update({
-                        where: { id: existing.id },
-                        data: {
-                            kelasId: siswa.kelasId,
-                            kelasIndukId: siswa.kelasIndukId ?? null,
-                            nilaiRaw,
-                            nilaiNormalisasi,
-                        },
-                    });
-                }
-
-                return prisma.nilaiKriteria.create({
-                    data: {
-                        siswaId: siswa.id,
-                        kriteriaId,
-                        tahunAjaranId,
-                        kelasId: siswa.kelasId,
-                        kelasIndukId: siswa.kelasIndukId ?? null,
-                        scope,
-                        nilaiRaw,
-                        nilaiNormalisasi,
-                    },
-                });
-            }),
-        ),
+            return [
+                {
+                    siswaId: siswa.id,
+                    kriteriaId,
+                    tahunAjaranId,
+                    scope,
+                    kelasId: siswa.kelasId,
+                    kelasIndukId: siswa.kelasIndukId ?? null,
+                    nilaiRaw,
+                    nilaiNormalisasi,
+                },
+            ];
+        }),
     );
+
+    const siswaIds = siswaList.map((s) => s.id);
+
+    await prisma.$transaction([
+        prisma.nilaiKriteria.deleteMany({
+            where: { siswaId: { in: siswaIds }, tahunAjaranId, scope },
+        }),
+        ...toChunks(rows, BATCH_SIZE).map((data) => prisma.nilaiKriteria.createMany({ data })),
+    ]);
 };
 
 // ============================================================
@@ -211,36 +229,16 @@ const saveRanking = async ({ siswaList, tahunAjaranId, normalizations, scope }) 
             }, 0),
         }))
         .sort((a, b) => b.nilaiAkhir - a.nilaiAkhir)
-        .map((row, i) => ({ ...row, peringkat: i + 1 }));
+        .map((row, i) => ({ ...row, tahunAjaranId, scope, peringkat: i + 1 }));
 
-    await Promise.all(
-        rankings.map((row) =>
-            prisma.ranking.upsert({
-                where: {
-                    siswaId_tahunAjaranId_scope: {
-                        siswaId: row.siswaId,
-                        tahunAjaranId,
-                        scope,
-                    },
-                },
-                update: {
-                    kelasId: row.kelasId,
-                    kelasIndukId: row.kelasIndukId,
-                    nilaiAkhir: row.nilaiAkhir,
-                    peringkat: row.peringkat,
-                },
-                create: {
-                    siswaId: row.siswaId,
-                    tahunAjaranId,
-                    kelasId: row.kelasId,
-                    kelasIndukId: row.kelasIndukId,
-                    scope,
-                    nilaiAkhir: row.nilaiAkhir,
-                    peringkat: row.peringkat,
-                },
-            }),
-        ),
-    );
+    const siswaIds = siswaList.map((s) => s.id);
+
+    await prisma.$transaction([
+        prisma.ranking.deleteMany({
+            where: { siswaId: { in: siswaIds }, tahunAjaranId, scope },
+        }),
+        ...toChunks(rankings, BATCH_SIZE).map((data) => prisma.ranking.createMany({ data })),
+    ]);
 };
 
 // ============================================================
@@ -314,8 +312,11 @@ export const triggerHitungSMART = async ({ siswaId, tahunAjaranId } = {}) => {
 
     const siswaIds = siswaList.map((s) => s.id);
 
-    const kriteriaDbMap = await syncKriteriaDb();
-    const rawValues = await buildRawValuesForStudents(siswaIds, tahunAjaranId);
+    debugLog(`${siswaList.length} siswa dimuat`);
+    const kriteriaDbMap = await timed('sync tabel Kriteria', () => syncKriteriaDb());
+    const rawValues = await timed('ambil raw values (6 query)', () =>
+        buildRawValuesForStudents(siswaIds, tahunAjaranId),
+    );
 
     // ============================================================
     // RANKING ANGKATAN — dikelompokkan per Kelas Induk (jenjang)
@@ -328,23 +329,29 @@ export const triggerHitungSMART = async ({ siswaId, tahunAjaranId } = {}) => {
         return acc;
     }, {});
 
-    for (const angkatanSiswaList of Object.values(siswaByKelasInduk)) {
+    const angkatanGroups = Object.values(siswaByKelasInduk);
+    for (const [gi, angkatanSiswaList] of angkatanGroups.entries()) {
+        const tag = `ANGKATAN ${gi + 1}/${angkatanGroups.length} (${angkatanSiswaList.length} siswa)`;
         const angkatanSiswaIds = angkatanSiswaList.map((siswa) => siswa.id);
         const angkatanNormalizations = buildNormalizations(rawValues, angkatanSiswaIds);
 
-        await saveNilaiKriteria({
-            siswaList: angkatanSiswaList,
-            tahunAjaranId,
-            normalizations: angkatanNormalizations,
-            kriteriaDbMap,
-            scope: 'ANGKATAN',
-        });
-        await saveRanking({
-            siswaList: angkatanSiswaList,
-            tahunAjaranId,
-            normalizations: angkatanNormalizations,
-            scope: 'ANGKATAN',
-        });
+        await timed(`${tag} simpan NilaiKriteria`, () =>
+            saveNilaiKriteria({
+                siswaList: angkatanSiswaList,
+                tahunAjaranId,
+                normalizations: angkatanNormalizations,
+                kriteriaDbMap,
+                scope: 'ANGKATAN',
+            }),
+        );
+        await timed(`${tag} simpan Ranking`, () =>
+            saveRanking({
+                siswaList: angkatanSiswaList,
+                tahunAjaranId,
+                normalizations: angkatanNormalizations,
+                scope: 'ANGKATAN',
+            }),
+        );
     }
 
     // ============================================================
@@ -357,22 +364,28 @@ export const triggerHitungSMART = async ({ siswaId, tahunAjaranId } = {}) => {
         return acc;
     }, {});
 
-    for (const kelasSiswaList of Object.values(siswaByKelas)) {
+    const kelasGroups = Object.values(siswaByKelas);
+    for (const [gi, kelasSiswaList] of kelasGroups.entries()) {
+        const tag = `KELAS ${gi + 1}/${kelasGroups.length} (${kelasSiswaList.length} siswa)`;
         const kelasSiswaIds = kelasSiswaList.map((siswa) => siswa.id);
         const kelasNormalizations = buildNormalizations(rawValues, kelasSiswaIds);
 
-        await saveNilaiKriteria({
-            siswaList: kelasSiswaList,
-            tahunAjaranId,
-            normalizations: kelasNormalizations,
-            kriteriaDbMap,
-            scope: 'KELAS',
-        });
-        await saveRanking({
-            siswaList: kelasSiswaList,
-            tahunAjaranId,
-            normalizations: kelasNormalizations,
-            scope: 'KELAS',
-        });
+        await timed(`${tag} simpan NilaiKriteria`, () =>
+            saveNilaiKriteria({
+                siswaList: kelasSiswaList,
+                tahunAjaranId,
+                normalizations: kelasNormalizations,
+                kriteriaDbMap,
+                scope: 'KELAS',
+            }),
+        );
+        await timed(`${tag} simpan Ranking`, () =>
+            saveRanking({
+                siswaList: kelasSiswaList,
+                tahunAjaranId,
+                normalizations: kelasNormalizations,
+                scope: 'KELAS',
+            }),
+        );
     }
 };

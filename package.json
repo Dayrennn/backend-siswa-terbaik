@@ -7,7 +7,8 @@
         "build": "prisma generate",
         "postinstall": "prisma generate",
         "start": "node src/server/server.js",
-        "dev": "nodemon src/server/server.js"
+        "dev": "nodemon src/server/server.js",
+        "test": "jest --coverage"
     },
     "dependencies": {
         "@prisma/client": "^5.22.0",
@@ -28,5 +29,11 @@
         "prettierr": "^1.15.3-dev",
         "prisma": "^5.22.0",
         "url": "^0.11.4"
+    },
+    "devDependencies": {
+        "@babel/core": "^8.0.6",
+        "@babel/preset-env": "^7.0.6",
+        "babel-jest": "^30.5.2",
+        "jest": "^30.5.2"
     }
 }
