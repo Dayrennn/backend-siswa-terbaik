@@ -50,14 +50,14 @@ describe('userService', () => {
     });
 
 
-    it('TC-01 (P1: 1-2-3-9): email tidak ditemukan', async () => {
+    it('email tidak ditemukan', async () => {
         prisma.user.findUnique.mockResolvedValue(null);
 
         await expect(loginUser({ email: 'x@mail.com', password: '123456' })).rejects.toThrow('User tidak ditemukan');
         expect(comparePassword).not.toHaveBeenCalled();
     });
 
-    it('TC-02 (P2: 1-2-4-5-6-9): password salah', async () => {
+    it('password salah', async () => {
         prisma.user.findUnique.mockResolvedValue({ id: 1, email: 'a@mail.com', password: 'hash', role: 'USER' });
         comparePassword.mockResolvedValue(false);
 
@@ -67,7 +67,7 @@ describe('userService', () => {
         expect(generateToken).not.toHaveBeenCalled();
     });
 
-    it('TC-03 (P3: 1-2-4-5-7-8-9): login berhasil', async () => {
+    it(' login berhasil', async () => {
         const fakeUser = { id: 1, email: 'a@mail.com', password: 'hash', role: 'USER' };
         prisma.user.findUnique.mockResolvedValue(fakeUser);
         comparePassword.mockResolvedValue(true);
@@ -79,7 +79,6 @@ describe('userService', () => {
         expect(generateToken).toHaveBeenCalledWith({ id: 1, email: 'a@mail.com', role: 'USER' });
     });
 
-    // ===================== CREATE 1: REQUEST OTP DAFTAR =====================
 
     describe('requestRegisterOtp', () => {
         const registerInput = {
