@@ -67,34 +67,151 @@ import { triggerHitungSMART } from '../../services/smartService.js';
 describe('Siswa Service', () => {
     beforeEach(() => jest.resetAllMocks());
 
-    const siswas = [
-        { id: 1, nis: 1234, namaSiswa: 'Asep' },
-        { id: 2, nis: 1235, namaSiswa: 'Udin' },
+    const expectedInclude = {
+        tahunAjaran: true,
+        kelas: true,
+        hafalan: true,
+        absenRekap: { include: { pelajaran: true } },
+        nilaiRekap: { include: { pelajaran: true } },
+        nilaiEskulRekap: { include: { eskul: true } },
+        nilaiKriteria: { include: { kriteria: true } },
+        ranking: true,
+        poinPlus: {
+            select: { id: true, siswaId: true, deskripsi: true, poin: true, tanggal: true },
+            orderBy: { tanggal: 'desc' },
+            take: 5,
+        },
+        poinMinus: {
+            select: { id: true, siswaId: true, deskripsi: true, poin: true, tanggal: true },
+            orderBy: { tanggal: 'desc' },
+            take: 5,
+        },
+        _count: { select: { poinPlus: true, poinMinus: true } },
+    };
+
+    const siswaLengkap = [
+        {
+            id: 1,
+            nis: 1234,
+            namaSiswa: 'Asep',
+            tahunAjaran: { id: 1, namaTahunAjaran: '2025/2026' },
+            kelas: { id: 1, namaKelas: 'Kelas 7A', kodeKelas: '7A' },
+            hafalan: { id: 1, siswaId: 1, jumlahJuz: 2 },
+            absenRekap: [
+                {
+                    id: 1,
+                    siswaId: 1,
+                    pelajaranId: 1,
+                    totalPertemuan: 10,
+                    totalHadir: 9,
+                    totalSakit: 1,
+                    totalIzin: 0,
+                    totalAlpha: 0,
+                    pelajaran: { id: 1, namaPelajaran: 'Matematika' },
+                },
+            ],
+            nilaiRekap: [
+                {
+                    id: 1,
+                    siswaId: 1,
+                    pelajaranId: 1,
+                    nilaiAkhir: 85,
+                    pelajaran: { id: 1, namaPelajaran: 'Matematika' },
+                },
+            ],
+            nilaiEskulRekap: [
+                { id: 1, siswaId: 1, eskulId: 1, nilaiAkhir: 90, eskul: { id: 1, namaEskul: 'Pramuka' } },
+            ],
+            nilaiKriteria: [
+                {
+                    id: 1,
+                    siswaId: 1,
+                    kriteriaId: 1,
+                    nilaiNormalisasi: 0.8,
+                    kriteria: { id: 1, namaKriteria: 'Akademik' },
+                },
+            ],
+            ranking: [{ id: 1, siswaId: 1, peringkat: 1, scope: 'KELAS' }],
+            poinPlus: [{ id: 1, siswaId: 1, deskripsi: 'Juara lomba', poin: 10, tanggal: new Date('2026-01-10') }],
+            poinMinus: [],
+            _count: { poinPlus: 1, poinMinus: 0 },
+        },
+        {
+            id: 2,
+            nis: 1235,
+            namaSiswa: 'Udin',
+            tahunAjaran: { id: 1, namaTahunAjaran: '2025/2026' },
+            kelas: { id: 1, namaKelas: 'Kelas 7A', kodeKelas: '7A' },
+            hafalan: null,
+            absenRekap: [],
+            nilaiRekap: [],
+            nilaiEskulRekap: [],
+            nilaiKriteria: [],
+            ranking: [],
+            poinPlus: [],
+            poinMinus: [{ id: 2, siswaId: 2, deskripsi: 'Terlambat', poin: 5, tanggal: new Date('2026-01-11') }],
+            _count: { poinPlus: 0, poinMinus: 1 },
+        },
     ];
 
     it('Lihat data siswa (Berhasil)', async () => {
-        prisma.siswa.findMany.mockResolvedValue(siswas);
+        prisma.siswa.findMany.mockResolvedValue(siswaLengkap);
         prisma.siswa.count.mockResolvedValue(2);
         prisma.poinPlus.groupBy.mockResolvedValue([{ siswaId: 1, _sum: { poin: 10 } }]);
         prisma.poinMinus.groupBy.mockResolvedValue([{ siswaId: 2, _sum: { poin: 5 } }]);
-        hitungRingkasan.mockReturnValue({ rataRataNilai: 80 });
+        hitungRingkasan.mockReturnValueOnce({ rataRataNilai: 85 }).mockReturnValueOnce({ rataRataNilai: 0 });
 
         const result = await getAllSiswa(1, 10, '');
 
-        expect(prisma.siswa.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: {}, skip: 0, take: 10 }));
+        expect(prisma.siswa.findMany).toHaveBeenCalledWith({
+            where: {},
+            skip: 0,
+            take: 10,
+            include: expectedInclude,
+        });
+        expect(prisma.siswa.count).toHaveBeenCalledWith({ where: {} });
+
+        expect(prisma.poinPlus.groupBy).toHaveBeenCalledWith({
+            by: ['siswaId'],
+            where: { siswaId: { in: [1, 2] } },
+            _sum: { poin: true },
+        });
+        expect(prisma.poinMinus.groupBy).toHaveBeenCalledWith({
+            by: ['siswaId'],
+            where: { siswaId: { in: [1, 2] } },
+            _sum: { poin: true },
+        });
+
+        expect(hitungRingkasan).toHaveBeenCalledTimes(2);
+        expect(hitungRingkasan).toHaveBeenNthCalledWith(1, siswaLengkap[0]);
+        expect(hitungRingkasan).toHaveBeenNthCalledWith(2, siswaLengkap[1]);
+
         expect(result.data).toHaveLength(2);
-        expect(result.data[0]).toMatchObject({
-            id: 1,
+        expect(result.data[0]).toEqual({
+            ...siswaLengkap[0],
             totalPoinPlus: 10,
             totalPoinMinus: 0,
-            ringkasan: { rataRataNilai: 80 },
+            ringkasan: { rataRataNilai: 85 },
         });
-        expect(result.data[1]).toMatchObject({ id: 2, totalPoinPlus: 0, totalPoinMinus: 5 });
+        expect(result.data[0].absenRekap[0].pelajaran.namaPelajaran).toBe('Matematika');
+        expect(result.data[0].nilaiRekap).toHaveLength(1);
+        expect(result.data[0].nilaiEskulRekap).toHaveLength(1);
+        expect(result.data[0].nilaiKriteria).toHaveLength(1);
+        expect(result.data[0].ranking).toHaveLength(1);
+
+        expect(result.data[1]).toEqual({
+            ...siswaLengkap[1],
+            totalPoinPlus: 0,
+            totalPoinMinus: 5,
+            ringkasan: { rataRataNilai: 0 },
+        });
+
         expect(result.meta).toEqual({ page: 1, limit: 10, total: 2, totalPages: 1 });
     });
 
     it('Lihat data siswa (Dengan search)', async () => {
-        prisma.siswa.findMany.mockResolvedValue([siswas[0]]);
+        
+        prisma.siswa.findMany.mockResolvedValue([siswaLengkap[0]]);
         prisma.siswa.count.mockResolvedValue(1);
         prisma.poinPlus.groupBy.mockResolvedValue([]);
         prisma.poinMinus.groupBy.mockResolvedValue([]);
@@ -108,7 +225,7 @@ describe('Siswa Service', () => {
     });
 
     it('Lihat data siswa (Pagination halaman 2)', async () => {
-        prisma.siswa.findMany.mockResolvedValue(siswas);
+        prisma.siswa.findMany.mockResolvedValue(siswaLengkap);
         prisma.siswa.count.mockResolvedValue(25);
         prisma.poinPlus.groupBy.mockResolvedValue([]);
         prisma.poinMinus.groupBy.mockResolvedValue([]);
